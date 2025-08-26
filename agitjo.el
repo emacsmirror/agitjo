@@ -193,7 +193,6 @@ interacted with."
 
 Initially prompt for a topic.  This string identifies the pull request
 that will be created or pushed to."
-  :value '("--push-option=force-push=true")
   ["Arguments"
    ("-f" "Force-push existing PR" agitjo-force-push-switch)
    ("-t" "Title" agitjo-title-option)
