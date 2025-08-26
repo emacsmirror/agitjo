@@ -1,0 +1,41 @@
+* AGitjo
+
+WARNING: This package is very new, and may be unstable!  Please hold off from
+using this for now if you expect something more reliable.
+
+-----
+
+AGitjo is a [[https://www.gnu.org/software/emacs/][GNU Emacs]] package that provides a transient interface for managing
+forge pull requests using AGit-Flow, specifically for Forgejo-based repositories
+like Codeberg.  This package aims to implement facilities that make the AGit
+workflow more convenient for users.
+
+** Usage
+
+Make sure the following dependencies are satisfied before using this package:
+- emacs 30.1.
+- magit 4.3.8.
+- transient 0.9.1.
+
+
+Run the following to load AGitjo:
+#+begin_src emacs-lisp
+  (use-package agitjo)
+#+end_src
+
+Usage generally is as follows:
+1. Write some code and commits, then decide it's ready for a pull request.
+2. Inside a repository, invoke ~agitjo-push~ with =M-x= or the =#= key inside a
+   Magit status buffer.
+3. Get prompted for a topic to set.  This is the identifier that is used to
+   determine what pull request is being interacted with (or created).  If none
+   is provided, the current branch name is used as the topic.  A menu will then
+   open with pull request options.
+4. By default, the force-push option (=-f=) is enabled, assuming the PR already
+   exists and the user wants to update it.  Disable it to create a new one.
+5. Set other options before invoking one of the push commands; currently, only
+   "push current branch to upstream" (=u=) is available.
+6. A buffer will open for editing the PR description, if creating a new pull
+   request.  After a satisfactory description is written, confirm the request
+   with =C-c C-c= (or cancel the operation with =C-c C-k=) to send it.
+7. Repeat 1-5 with the force-push option enabled to edit existing PRs.
