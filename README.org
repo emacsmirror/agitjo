@@ -34,8 +34,8 @@ Usage generally is as follows:
 4. After setting desired options, invoke one of the push commands to begin a
    git-push operation.  Currently, only "push current branch to upstream" (=u=)
    is available.
-5. If creating a new PR (=-f= is disabled), a dedicated buffer will open for
-   editing the PR description before pushing.
+5. If creating a new PR (when =-f= is disabled), a dedicated buffer will open
+   for editing the PR description before pushing.
 6. After a satisfactory description is written, confirm that it is completed
    with =C-c C-c= to send it.  This process can also be aborted with =C-c C-k=.
 7. Repeat 1-4 with the force-push option enabled (=-f=) to edit the existing PR.
