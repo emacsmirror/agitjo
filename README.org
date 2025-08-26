@@ -28,14 +28,14 @@ Usage generally is as follows:
 2. Inside a repository, invoke ~agitjo-push~ with =M-x= or the =#= key inside a
    Magit status buffer.
 3. Get prompted for a topic to set.  This is the identifier that is used to
-   determine what pull request is being interacted with (or created).  If none
-   is provided, the current branch name is used as the topic.  A menu will then
-   open with pull request options.
-4. By default, the force-push option (=-f=) is enabled, assuming the PR already
-   exists and the user wants to update it.  Disable it to create a new one.
-5. Set other options before invoking one of the push commands; currently, only
-   "push current branch to upstream" (=u=) is available.
-6. A buffer will open for editing the PR description, if creating a new pull
-   request.  After a satisfactory description is written, confirm the request
-   with =C-c C-c= (or cancel the operation with =C-c C-k=) to send it.
-7. Repeat 1-5 with the force-push option enabled to edit existing PRs.
+   determine what pull request is being interacted with.  If none is provided,
+   the current branch name is used as the topic.  A menu will then open with
+   pull request options.
+4. After setting desired options, invoke one of the push commands to begin a
+   git-push operation.  Currently, only "push current branch to upstream" (=u=)
+   is available.
+5. If creating a new PR (=-f= is disabled), a dedicated buffer will open for
+   editing the PR description before pushing.
+6. After a satisfactory description is written, confirm that it is completed
+   with =C-c C-c= to send it.  This process can also be aborted with =C-c C-k=.
+7. Repeat 1-4 with the force-push option enabled (=-f=) to edit the existing PR.
