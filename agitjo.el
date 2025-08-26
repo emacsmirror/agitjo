@@ -130,13 +130,17 @@ ARGS specifies the transient arguments to be passed to \"git push\"."
 ;;;;; Definitions.
 
 (transient-define-suffix agitjo-push-current-for-upstream (args)
-  :inapt-if-not (lambda () (and (magit-get-current-branch)
-                                (magit-get-upstream-branch)))
+  :inapt-if-not (lambda () (magit-get-current-branch))
   :description (lambda ()
                  (if-let* ((branch (magit-get-upstream-branch)))
                      branch
                    "(no upstream set)"))
   (interactive (list (transient-args 'agitjo-push)))
+  ;; TODO: prompt to set upstream branch to some remote branch (we shouldn't
+  ;; include local branches).  For now, error if user tries to push to a
+  ;; nonexistent upstream.
+  (unless (magit-get-upstream-branch)
+    (user-error "No upstream branch is set"))
   (let ((force-push? (transient-arg-value "--push-option=force-push=true" args)))
     (if force-push?
         (agitjo--push-current-for-upstream args)
