@@ -120,7 +120,8 @@ a significant amount of content.
 Use the buffer's contents as a description for the PR."
   (with-current-buffer agitjo-post--buffer-name
     (agitjo--push-current-for-upstream
-     `(,(concat "--push-option=description=" (buffer-string))
+     `(,(concat "--push-option=description=" (agitjo--sanitize-description
+                                              (buffer-string)))
        ,agitjo-post--push-args))
     (quit-window :kill (get-buffer-window))))
 
@@ -132,6 +133,13 @@ ARGS specifies the transient arguments to be passed to \"git push\"."
          (target-branch (magit-get-local-upstream-branch))
          (refspec (format "HEAD:refs/for/%s" target-branch)))
     (magit-run-git-async "push" "-v" remote refspec args)))
+
+(defun agitjo--sanitize-description (string)
+  "Remove or convert problematic characters from description STRING."
+  ;; New lines cause a git error "fatal: push options must not have new line
+  ;; characters", but carriage returns seem to work fine, and render fine on
+  ;; Codeberg as well.
+  (string-replace "\n" "\r" string))
 
 ;;;;; Definitions.
 
