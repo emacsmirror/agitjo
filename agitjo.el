@@ -70,7 +70,13 @@ ARGS is a list of transient arguments."
     (with-current-buffer buffer
       (agitjo-post-mode)
       (setq agitjo-post--on-confirm-function on-confirm-fun
-            agitjo-post--push-args args))
+            agitjo-post--push-args args)
+      (insert "\
+<!-- WARNING: Recovery facilities for this buffer have not yet been implemented.
+This buffer is NOT backed by a file, nor any history, so it is recommended to
+prepare descriptions elsewhere to copy here if a description is going to contain
+a significant amount of content.
+(this comment can be deleted.) -->"))
     (select-window (display-buffer buffer))))
 
 ;;;; Definitions.
