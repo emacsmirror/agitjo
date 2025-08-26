@@ -180,7 +180,6 @@ interacted with."
   :class 'transient-option
   :argument "--push-option=topic="
   :reader #'agitjo--read-topic-string
-  :init-value (lambda (obj) (oset obj value (transient-scope)))
   :always-read t
   :unsavable t)
 
@@ -210,8 +209,7 @@ that will be created or pushed to."
   (interactive)
   (transient-setup
    'agitjo-push nil nil
-   ;; The scope (at least for now) is the session identifier.
-   :scope (agitjo--read-topic-string)))
+   :value `(,(concat "--push-option=topic=" (agitjo--read-topic-string)))))
 
 (transient-augment-suffix agitjo-push
   :inapt-if-not #'magit-get-current-branch)
