@@ -233,17 +233,24 @@ ARGS is a list of transient arguments to be passed to \"git push\"."
   :class 'agitjo-push-pullreq-suffix
   :source #'magit-get-current-branch
   :target (lambda ()
-            (if-let* ((branch (magit-get-upstream-branch)))
-                branch
-              ;; TODO: prompt to set upstream branch to some remote branch (we
-              ;; shouldn't include local branches).  For now, error if user
-              ;; tries to push to a nonexistent upstream.
-              (user-error "No upstream branch is set")))
+            (if-let* ((current-branch (magit-get-current-branch))
+                      (branch (magit-get-upstream-branch))
+                      (target-branch (agitjo-get-target-branch branch)))
+                target-branch
+              (let ((new-upstream (magit-read-remote-branch
+                                   (format "Set upstream of %s and push PR: "
+                                           current-branch))))
+                (magit-set-upstream-branch current-branch new-upstream)
+                new-upstream)))
   :inapt-if-not (lambda () (magit-get-current-branch))
   :description (lambda ()
                  (if-let* ((branch (magit-get-upstream-branch)))
-                     branch
-                   "(no upstream set)"))
+                     (if-let* ((target-branch (agitjo-get-target-branch branch)))
+                         target-branch
+                       (format "@{upstream}, overwriting it (%s not in %s)"
+                               branch (propertize (magit-primary-remote)
+                                                  'face 'magit-branch-remote)))
+                   "@{upstream}, setting it"))
   (interactive)
   (call-interactively #'agitjo-push-pullreq))
 
