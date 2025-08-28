@@ -280,8 +280,7 @@ identifier, even if a pull request with the same ID exists."
 
 Leave empty to use the first line of the first new Git commit."
   :class 'transient-option
-  :argument "--push-option=title="
-  :unsavable t)
+  :argument "--push-option=title=")
 
 (transient-define-infix agitjo-topic-option ()
   "The topic of this pull request.
