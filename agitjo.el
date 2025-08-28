@@ -45,7 +45,7 @@
 (keymap-set magit-status-mode-map "#" #'agitjo-push)
 
 (transient-append-suffix 'magit-dispatch "!"
-  '("#" "AGit-Flow Push" agitjo-push))
+  '("#" "AGit-Flow push" agitjo-push))
 
 ;;; Options.
 
