@@ -34,18 +34,14 @@ Run the following to load AGitjo:
 #+end_src
 
 Usage generally is as follows:
-1. Write some code and commits, then decide it's ready for a pull request.
-2. Inside a repository, invoke ~agitjo-push~ with =M-x= or the =#= key inside a
-   Magit status buffer.
-3. Get prompted for a topic to set.  This is the identifier that is used to
-   determine what pull request is being interacted with.  If none is provided,
-   the current branch name is used as the topic.  A menu will then open with
-   pull request options.
-4. After setting desired options, invoke one of the push commands to begin a
-   git-push operation.  Currently, only "push current branch to upstream" (=u=)
-   is available.
-5. If creating a new PR (when =-f= is disabled), a dedicated buffer will open
-   for editing the PR description before pushing.
-6. After a satisfactory description is written, confirm that it is completed
+1. Write and commit some code, and eventually decide it's ready for a pull
+   request.
+2. Inside the repository, invoke ~agitjo-push~ with =M-x= or the =#= key inside
+   a Magit status buffer to open the menu.
+3. After setting desired options, invoke one of the push commands to begin a
+   git-push operation.
+4. If creating a new PR (i.e. when =-f= is disabled), a dedicated buffer will
+   open for editing the PR description before pushing.
+5. After a satisfactory description is written, confirm that it is completed
    with =C-c C-c= to send it.  This process can also be aborted with =C-c C-k=.
-7. Repeat 1-4 with the force-push option enabled (=-f=) to edit the existing PR.
+6. Repeat 1-3 with the force-push option (=-f=) enabled to edit the existing PR.
