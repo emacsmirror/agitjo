@@ -47,6 +47,13 @@
 (transient-append-suffix 'magit-dispatch "!"
   '("#" "AGit-Flow Push" agitjo-push))
 
+;;; Options.
+
+(defvar agitjo--topic-current nil
+  "The current session topic.
+
+If nil, the PR's source branch will be used by default.")
+
 
 ;;; Classes.
 
@@ -77,6 +84,31 @@ Thunk that returns target branch.  If nil, read from user instead.")))
     (cond
      ((functionp value) (funcall value))
      (t (magit-read-remote-branch "Target remote branch: ")))))
+
+;;;; `agitjo--topic-variable-infix'
+
+(defclass agitjo--topic-variable-infix (transient-variable)
+  ((reader :initform #'agitjo--topic-reader)
+   (prompt :initform "Topic (empty to use PR source branch): ")))
+
+(cl-defmethod transient-infix-set ((_obj agitjo--topic-variable-infix) value)
+  "Set `agitjo--topic-current' to VALUE."
+  (setq agitjo--topic-current value))
+
+(cl-defmethod transient-format-value ((_obj agitjo--topic-variable-infix))
+  "Return `agitjo--topic-current' as a formatted string for display."
+  (concat
+   "("
+   (or (and agitjo--topic-current
+            (propertize agitjo--topic-current 'face 'transient-value))
+       (propertize "<use PR source branch>" 'face 'transient-inactive-value))
+   ")"))
+
+(defun agitjo--topic-reader (prompt initial-input history)
+  "Read and return the session identifier to use.
+
+PROMPT, INITIAL-INPUT, and HISTORY are as defined in `read-string'."
+  (read-string prompt initial-input history))
 
 
 ;;; Modes.
@@ -166,14 +198,22 @@ TYPE should be one of \"for|draft|for-review\", where \"for\" is a
 normal pull request.  This should always be \"for\", as this feature is
 not yet implemented in Forgejo.
 
-SOURCE must a local branch.  TARGET must be a remote branch."
+SOURCE must a local branch.  TARGET must be a remote branch.
+
+If `agitjo--topic-current' is non-nil, use that value as the session.
+Otherwise, the source branch name will be used."
   (let ((valid-types '("for" "draft" "for-review")))
     (unless (member type valid-types)
       (error "Pull request type is not one of %S" valid-types)))
   (unless (magit-local-branch-p source)
     (error "Source branch is not a local branch: %S" source))
-  (let ((target-branch (agitjo--remote-branch-name target)))
-    (format "%s:refs/%s/%s/%s" source type target-branch source)))
+  (let ((target-branch (agitjo--remote-branch-name target))
+        ;; TODO: How do we handle local references?  We can currently default to
+        ;; source since it can only be a local branch, but git also allows local
+        ;; references; if we permit using local references as sources, could
+        ;; this default-to-source cause issues in the refspec?
+        (session (or agitjo--topic-current source)))
+    (format "%s:refs/%s/%s/%s" source type target-branch session)))
 
 (defun agitjo--push-pullreq (type source target &rest args)
   "Push a pull request of TYPE, from SOURCE ref to TARGET branch.
@@ -256,15 +296,6 @@ ARGS is a list of transient arguments to be passed to \"git push\"."
 
 ;;;; Transient infixes.
 
-;;;;; Auxiliary.
-
-(defun agitjo--read-topic-string (&rest _args)
-  "Read and return the session identifier to use."
-  (let ((branch (magit-get-current-branch)))
-    (read-string
-     (concat "Topic (default: " branch  "): ")
-     nil 'agitjo--topic-history branch)))
-
 ;;;;; Definitions.
 
 (transient-define-infix agitjo-force-push-switch ()
@@ -282,30 +313,24 @@ Leave empty to use the first line of the first new Git commit."
   :class 'transient-option
   :argument "--push-option=title=")
 
-(transient-define-infix agitjo-topic-option ()
-  "The topic of this pull request.
+(transient-define-infix agitjo-topic-variable ()
+  "Topic of the pull request.
 
 This is an identifier string that controls which pull request is being
-interacted with."
-  :class 'transient-option
-  :argument "--push-option=topic="
-  :reader #'agitjo--read-topic-string
-  :always-read t
-  :unsavable t)
+interacted with.  If not specified, the pull request's source branch
+will be used as the topic."
+  :class 'agitjo--topic-variable-infix)
 
 ;;;; Transient prefixes.
 
 ;;;;; Definitions.
 
 (transient-define-prefix agitjo-push ()
-  "Push to a Forgejo-based repository, using AGit-Flow.
-
-Initially prompt for a topic.  This string identifies the pull request
-that will be created or pushed to."
+  "Push to a Forgejo-based repository, using AGit-Flow."
   ["Arguments"
    ("-f" "Force-push existing PR" agitjo-force-push-switch)
    ("-t" "Title" agitjo-title-option)
-   ("-T" "Topic (session)" agitjo-topic-option)]
+   ("-T" "Topic/session" agitjo-topic-variable)]
   [ :inapt-if-not magit-get-current-branch
     :description (lambda ()
                    (if-let* ((branch (magit-get-current-branch)))
@@ -315,11 +340,7 @@ that will be created or pushed to."
                      "Push pull request from <no current branch> to"))
     ("u" agitjo-push-pullreq-current-to-upstream)]
   ["Configure"
-   ("C" "Set variables..." magit-branch-configure)]
-  (interactive)
-  (transient-setup
-   'agitjo-push nil nil
-   :value `(,(concat "--push-option=topic=" (agitjo--read-topic-string)))))
+   ("C" "Set variables..." magit-branch-configure)])
 
 (transient-augment-suffix agitjo-push
   :inapt-if-not #'magit-get-current-branch)
