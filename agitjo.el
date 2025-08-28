@@ -299,6 +299,15 @@ ARGS is a list of transient arguments to be passed to \"git push\"."
   (interactive)
   (call-interactively #'agitjo-push-pullreq))
 
+(transient-define-suffix agitjo-push-pullreq-current ()
+  :class 'agitjo-push-pullreq-suffix
+  :source #'magit-get-current-branch
+  :target (lambda () (magit-read-remote-branch "Push PR to: "))
+  :inapt-if-not #'magit-get-current-branch
+  :description "elsewhere"
+  (interactive)
+  (call-interactively #'agitjo-push-pullreq))
+
 ;;;; Transient infixes.
 
 ;;;;; Definitions.
@@ -346,7 +355,8 @@ will be used as the topic."
                                            'face 'transient-heading)
                                (propertize branch 'face 'magit-branch-local))
                      "Push pull request from <no current branch> to"))
-    ("u" agitjo-push-pullreq-current-to-upstream)]
+    ("u" agitjo-push-pullreq-current-to-upstream)
+    ("e" agitjo-push-pullreq-current)]
   ["Configure"
    ("C" "Set variables..." magit-branch-configure)])
 
