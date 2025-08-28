@@ -309,14 +309,16 @@ ARGS is a list of transient arguments to be passed to \"git push\"."
 If this is not passed, a new pull request will be created with the topic
 identifier, even if a pull request with the same ID exists."
   :class 'transient-switch
-  :argument "--push-option=force-push=true")
+  :argument "--push-option=force-push=true"
+  :description "Force-push existing PR")
 
 (transient-define-infix agitjo-title-option ()
   "Title of pull request.
 
 Leave empty to use the first line of the first new Git commit."
   :class 'transient-option
-  :argument "--push-option=title=")
+  :argument "--push-option=title="
+  :description "Title")
 
 (transient-define-infix agitjo-topic-variable ()
   "Topic of the pull request.
@@ -324,7 +326,8 @@ Leave empty to use the first line of the first new Git commit."
 This is an identifier string that controls which pull request is being
 interacted with.  If not specified, the pull request's source branch
 will be used as the topic."
-  :class 'agitjo--topic-variable-infix)
+  :class 'agitjo--topic-variable-infix
+  :description "Session/topic")
 
 ;;;; Transient prefixes.
 
@@ -333,9 +336,9 @@ will be used as the topic."
 (transient-define-prefix agitjo-push ()
   "Push to a Forgejo-based repository, using AGit-Flow."
   ["Arguments"
-   ("-f" "Force-push existing PR" agitjo-force-push-switch)
-   ("-t" "Title" agitjo-title-option)
-   ("-s" "Session/topic" agitjo-topic-variable)]
+   ("-f" agitjo-force-push-switch)
+   ("-t" agitjo-title-option)
+   ("-s" agitjo-topic-variable)]
   [ :inapt-if-not magit-get-current-branch
     :description (lambda ()
                    (if-let* ((branch (magit-get-current-branch)))
