@@ -38,6 +38,7 @@
 
 (require 'magit)
 (require 'markdown-mode)
+(require 'pcase)
 (require 'transient)
 
 (keymap-set magit-status-mode-map "#" #'agitjo-push)
