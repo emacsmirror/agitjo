@@ -215,6 +215,8 @@ Otherwise, the source branch name will be used."
         (session (or agitjo--topic-current source)))
     (format "%s:refs/%s/%s/%s" source type target-branch session)))
 
+(defvar agitjo--push-pullreq-debug? nil)
+
 (defun agitjo--push-pullreq (type source target &rest args)
   "Push a pull request of TYPE, from SOURCE ref to TARGET branch.
 
@@ -226,7 +228,10 @@ ARGS is a list of additional arguments to pass to \"git push\"."
   (pcase-exhaustive (magit-split-branch-name target)
     (`(,remote . ,_target-branch)
      (let ((refspec (agitjo-pullreq-refspec type source target)))
-       (magit-run-git-async "push" "-v" remote refspec args)))))
+       (if agitjo--push-pullreq-debug?
+           (message "debug (remote; refspec; args): %S; %S; %S"
+                    remote refspec args)
+         (magit-run-git-async "push" "-v" remote refspec args))))))
 
 (defun agitjo--remote-branch-name (branch)
   "Return the name part of remote branch BRANCH."
