@@ -2,6 +2,7 @@
              (gnu packages version-control)
              (guix build-system emacs)
              (guix download)
+             (guix gexp)
              (guix git-download)
              ((guix licenses) #:prefix license:)
              (guix packages))
