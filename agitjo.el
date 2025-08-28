@@ -345,10 +345,9 @@ will be used as the topic."
 (defun agitjo-push--pullreq-current-description ()
   "Return description for group of commands that make PRs from current branch."
   (if-let* ((branch (magit-get-current-branch)))
-      (format (propertize "Push pull request from %s to"
-                          'face 'transient-heading)
+      (format (propertize "Push PR from %s to" 'face 'transient-heading)
               (propertize branch 'face 'magit-branch-local))
-    "Push pull request from <no current branch> to"))
+    "Push PR from <no current branch> to"))
 
 ;;;;; Definitions.
 
@@ -362,7 +361,7 @@ will be used as the topic."
     :description agitjo-push--pullreq-current-description
     ("u" agitjo-push-pullreq-current-to-upstream)
     ("e" agitjo-push-pullreq-current)]
-  ["Push pull request from"
+  ["Push PR from"
    ("o" "another branch" agitjo-push-pullreq)]
   ["Configure"
    ("C" "Set variables..." magit-branch-configure)])
