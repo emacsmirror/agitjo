@@ -283,11 +283,11 @@ ARGS is a list of transient arguments to be passed to \"git push\"."
                       (target-branch (agitjo-get-target-branch branch)))
                 target-branch
               (let ((new-upstream (magit-read-remote-branch
-                                   (format "Set upstream of %s and push PR: "
+                                   (format "Set upstream of %s and push PR to: "
                                            current-branch))))
                 (magit-set-upstream-branch current-branch new-upstream)
                 new-upstream)))
-  :inapt-if-not (lambda () (magit-get-current-branch))
+  :inapt-if-not #'magit-get-current-branch
   :description (lambda ()
                  (if-let* ((branch (magit-get-upstream-branch)))
                      (if-let* ((target-branch (agitjo-get-target-branch branch)))
