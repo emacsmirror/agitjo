@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; AGitjo provides a transient interface for managing forge pull requests using
-;; AGit-Flow, specifically for Forgejo-based repositories like Codeberg.  This
+;; AGit-Flow, specifically for Forgejo-based (e.g. Codeberg) repositories.  This
 ;; package aims to implement facilities that make the AGit workflow more
 ;; convenient for users.
 
