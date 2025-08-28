@@ -50,9 +50,9 @@
 
 ;;; Classes.
 
-;;;; `agitjo-push-pull-request-suffix'.
+;;;; `agitjo-push-pullreq-suffix'.
 
-(defclass agitjo-push-pull-request-suffix (transient-suffix)
+(defclass agitjo-push-pullreq-suffix (transient-suffix)
   ((source :initarg :source
            :initform nil
            :type (or function null)
@@ -64,14 +64,14 @@ Thunk that returns source reference.  If nil, read from user instead.")
            :documentation "\
 Thunk that returns target branch.  If nil, read from user instead.")))
 
-(cl-defmethod agitjo-pull-request-source ((obj agitjo-push-pull-request-suffix))
+(cl-defmethod agitjo-pullreq-source ((obj agitjo-push-pullreq-suffix))
   "Return pull request source for OBJ, as a string.  Prompt if needed."
   (let ((value (oref obj source)))
     (cond
      ((functionp value) (funcall value))
      (t (magit-read-local-branch "Source local branch: ")))))
 
-(cl-defmethod agitjo-pull-request-target ((obj agitjo-push-pull-request-suffix))
+(cl-defmethod agitjo-pullreq-target ((obj agitjo-push-pullreq-suffix))
   "Return pull request target for OBJ, as a string.  Prompt if needed."
   (let ((value (oref obj target)))
     (cond
@@ -85,19 +85,19 @@ Thunk that returns target branch.  If nil, read from user instead.")))
 
 (defvar agitjo-post--buffer-name "*AGitjo-post*")
 
-(defvar-local agitjo-post--pull-request-args nil
-  "Buffer-local storage for arguments to pass to `agitjo--push-pull-request'.")
+(defvar-local agitjo-post--pullreq-args nil
+  "Buffer-local storage for arguments to pass to `agitjo--push-pullreq'.")
 
 ;; TODO: Back the buffer by a file, so it can have a chance of recovery in case
 ;; of some interruption.
 (defun agitjo-post--setup-buffer (args)
   "Set up buffer for editing pull request posts.
 
-ARGS is a list of arguments to be passed to `agitjo--push-pull-request'."
+ARGS is a list of arguments to be passed to `agitjo--push-pullreq'."
   (let* ((buffer (get-buffer-create agitjo-post--buffer-name)))
     (with-current-buffer buffer
       (agitjo-post-mode)
-      (setq agitjo-post--pull-request-args args)
+      (setq agitjo-post--pullreq-args args)
       (insert "\
 <!-- WARNING: Recovery facilities for this buffer have not yet been implemented.
 This buffer is NOT backed by a file, nor any history, so it is recommended to
@@ -136,8 +136,8 @@ a significant amount of content.
   (unless (equal agitjo-post--buffer-name (buffer-name))
     (user-error "Function called outside AGitjo post buffer"))
   (with-current-buffer agitjo-post--buffer-name
-    (apply #'agitjo--push-pull-request
-           `(,@agitjo-post--pull-request-args
+    (apply #'agitjo--push-pullreq
+           `(,@agitjo-post--pullreq-args
              ,(concat "--push-option=description=" (agitjo--sanitize-description
                                                     (buffer-string)))))
     (quit-window :kill (get-buffer-window))))
@@ -159,7 +159,7 @@ Otherwise, BRANCH is already a remote branch, and return it as-is."
         (if (magit-remote-branch-p remote-branch) remote-branch nil))
     branch))
 
-(defun agitjo-pull-request-refspec (type source target)
+(defun agitjo-pullreq-refspec (type source target)
   "Construct and return a pull request refspec from arguments.
 
 TYPE should be one of \"for|draft|for-review\", where \"for\" is a
@@ -175,7 +175,7 @@ SOURCE must a local branch.  TARGET must be a remote branch."
   (let ((target-branch (agitjo--remote-branch-name target)))
     (format "%s:refs/%s/%s/%s" source type target-branch source)))
 
-(defun agitjo--push-pull-request (type source target &rest args)
+(defun agitjo--push-pullreq (type source target &rest args)
   "Push a pull request of TYPE, from SOURCE ref to TARGET branch.
 
 TYPE, SOURCE, and TARGET will be passed to
@@ -185,7 +185,7 @@ for documentation.
 ARGS is a list of additional arguments to pass to \"git push\"."
   (pcase-exhaustive (magit-split-branch-name target)
     (`(,remote . ,_target-branch)
-     (let ((refspec (agitjo-pull-request-refspec type source target)))
+     (let ((refspec (agitjo-pullreq-refspec type source target)))
        (magit-run-git-async "push" "-v" remote refspec args)))))
 
 (defun agitjo--remote-branch-name (branch)
@@ -209,28 +209,28 @@ ARGS is a list of additional arguments to pass to \"git push\"."
 
 ;;;;; Definitions.
 
-(transient-define-suffix agitjo-push-pull-request (args)
+(transient-define-suffix agitjo-push-pullreq (args)
   "Push with AGit-Flow to create or edit a pull request.
 
 This is meant to be modified with keywords in suffix specifications.
-See `agitjo-push-pull-request-suffix' for information on slots.
+See `agitjo-push-pullreq-suffix' for information on slots.
 
 ARGS is a list of transient arguments to be passed to \"git push\"."
-  :class 'agitjo-push-pull-request-suffix
+  :class 'agitjo-push-pullreq-suffix
   (interactive (list (transient-args 'agitjo-push)))
   (let* ((obj (transient-suffix-object))
          (force-push? (transient-arg-value "--push-option=force-push=true" args))
-         (source (agitjo-pull-request-source obj))
-         (target (agitjo-pull-request-target obj))
+         (source (agitjo-pullreq-source obj))
+         (target (agitjo-pullreq-target obj))
          ;; TODO: Implement using pull request type from transient state.
          ;; Hard-code as "for" for now.
-         (pull-request-args (list "for" source target args)))
+         (pullreq-args (list "for" source target args)))
     (if force-push?
-        (apply #'agitjo--push-pull-request pull-request-args)
-      (agitjo-post--setup-buffer pull-request-args))))
+        (apply #'agitjo--push-pullreq pullreq-args)
+      (agitjo-post--setup-buffer pullreq-args))))
 
-(transient-define-suffix agitjo-push-pull-request-from-current-to-upstream ()
-  :class 'agitjo-push-pull-request-suffix
+(transient-define-suffix agitjo-push-pullreq-current-to-upstream ()
+  :class 'agitjo-push-pullreq-suffix
   :source #'magit-get-current-branch
   :target (lambda ()
             (if-let* ((branch (magit-get-upstream-branch)))
@@ -245,7 +245,7 @@ ARGS is a list of transient arguments to be passed to \"git push\"."
                      branch
                    "(no upstream set)"))
   (interactive)
-  (call-interactively #'agitjo-push-pull-request))
+  (call-interactively #'agitjo-push-pullreq))
 
 ;;;; Transient infixes.
 
@@ -307,7 +307,7 @@ that will be created or pushed to."
                                            'face 'transient-heading)
                                (propertize branch 'face 'magit-branch-local))
                      "Push pull request from <no current branch> to"))
-    ("u" agitjo-push-pull-request-from-current-to-upstream)]
+    ("u" agitjo-push-pullreq-current-to-upstream)]
   ["Configure"
    ("C" "Set variables..." magit-branch-configure)]
   (interactive)
