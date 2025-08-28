@@ -2,6 +2,24 @@
 
 ** Unreleased
 
+*** Added
+
+- Add transient suffix class ~agitjo-push-pullreq-suffix~.
+- Support setting upstream on invocation of
+  ~agitjo-push-pullreq-current-to-upstream~ if an associated upstream is not
+  found.
+- Define and add suffix command ~agitjo-push-pullreq~ to menu, for pushing pull
+  requests from some local branch to some remote branch.
+- Define and add suffix command ~agitjo-push-pullreq-current~ to menu, for
+  pushing pull requests from current branch to some remote branch.
+
+*** Changed
+
+- Make the topic option optional, no longer prompting for a value when opening
+  the menu.
+- Make the topic option persistent per Emacs session.
+- Rename various existing facilities.
+
 ** [[https://codeberg.org/halvin/agitjo/src/tag/v0.1.0][0.1.0]] - 2025-07-26
 
 Initial release.
