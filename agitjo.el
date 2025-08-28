@@ -36,6 +36,7 @@
 
 ;;; Initial Code.
 
+(require 'eieio)
 (require 'magit)
 (require 'markdown-mode)
 (require 'pcase)
@@ -45,6 +46,37 @@
 
 (transient-append-suffix 'magit-dispatch "!"
   '("#" "AGit-Flow Push" agitjo-push))
+
+
+;;; Classes.
+
+;;;; `agitjo-push-pull-request-suffix'.
+
+(defclass agitjo-push-pull-request-suffix (transient-suffix)
+  ((source :initarg :source
+           :initform nil
+           :type (or function null)
+           :documentation "\
+Thunk that returns source reference.  If nil, read from user instead.")
+   (target :initarg :target
+           :initform nil
+           :type (or function null)
+           :documentation "\
+Thunk that returns target branch.  If nil, read from user instead.")))
+
+(cl-defmethod agitjo-pull-request-source ((obj agitjo-push-pull-request-suffix))
+  "Return pull request source for OBJ, as a string.  Prompt if needed."
+  (let ((value (oref obj source)))
+    (cond
+     ((functionp value) (funcall value))
+     (t (magit-read-local-branch "Source local branch: ")))))
+
+(cl-defmethod agitjo-pull-request-target ((obj agitjo-push-pull-request-suffix))
+  "Return pull request target for OBJ, as a string.  Prompt if needed."
+  (let ((value (oref obj target)))
+    (cond
+     ((functionp value) (funcall value))
+     (t (magit-read-remote-branch "Target remote branch: ")))))
 
 
 ;;; Modes.
