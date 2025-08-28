@@ -357,6 +357,8 @@ will be used as the topic."
                      "Push pull request from <no current branch> to"))
     ("u" agitjo-push-pullreq-current-to-upstream)
     ("e" agitjo-push-pullreq-current)]
+  ["Push pull request from"
+   ("o" "another branch" agitjo-push-pullreq)]
   ["Configure"
    ("C" "Set variables..." magit-branch-configure)])
 
