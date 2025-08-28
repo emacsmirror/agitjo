@@ -340,6 +340,16 @@ will be used as the topic."
 
 ;;;; Transient prefixes.
 
+;;;;; Auxiliary.
+
+(defun agitjo-push--pullreq-current-description ()
+  "Return description for group of commands that make PRs from current branch."
+  (if-let* ((branch (magit-get-current-branch)))
+      (format (propertize "Push pull request from %s to"
+                          'face 'transient-heading)
+              (propertize branch 'face 'magit-branch-local))
+    "Push pull request from <no current branch> to"))
+
 ;;;;; Definitions.
 
 (transient-define-prefix agitjo-push ()
@@ -349,12 +359,7 @@ will be used as the topic."
    ("-t" agitjo-title-option)
    ("-s" agitjo-topic-variable)]
   [ :inapt-if-not magit-get-current-branch
-    :description (lambda ()
-                   (if-let* ((branch (magit-get-current-branch)))
-                       (format (propertize "Push pull request from %s to"
-                                           'face 'transient-heading)
-                               (propertize branch 'face 'magit-branch-local))
-                     "Push pull request from <no current branch> to"))
+    :description agitjo-push--pullreq-current-description
     ("u" agitjo-push-pullreq-current-to-upstream)
     ("e" agitjo-push-pullreq-current)]
   ["Push pull request from"
