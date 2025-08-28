@@ -330,7 +330,7 @@ will be used as the topic."
   ["Arguments"
    ("-f" "Force-push existing PR" agitjo-force-push-switch)
    ("-t" "Title" agitjo-title-option)
-   ("-T" "Topic/session" agitjo-topic-variable)]
+   ("-s" "Session/topic" agitjo-topic-variable)]
   [ :inapt-if-not magit-get-current-branch
     :description (lambda ()
                    (if-let* ((branch (magit-get-current-branch)))
