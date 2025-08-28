@@ -303,10 +303,10 @@ that will be created or pushed to."
   [ :inapt-if-not magit-get-current-branch
     :description (lambda ()
                    (if-let* ((branch (magit-get-current-branch)))
-                       (format (propertize "Push %s pull request for"
+                       (format (propertize "Push pull request from %s to"
                                            'face 'transient-heading)
                                (propertize branch 'face 'magit-branch-local))
-                     "Push <no branch set> ..."))
+                     "Push pull request from <no current branch> to"))
     ("u" agitjo-push-pull-request-from-current-to-upstream)]
   ["Configure"
    ("C" "Set variables..." magit-branch-configure)]
