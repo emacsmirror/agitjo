@@ -13,6 +13,13 @@ repositories.
 
 ** Installation
 
+Make sure the following dependencies are satisfied before using this package:
+- emacs 30.1.
+- magit 4.3.8.
+- markdown-mode 2.7.
+- transient 0.9.1.
+
+
 This package can be installed with Guix, using the =guix.scm= file in this
 repository.  For example, to install to the user profile, one may run the
 following in this repository's root directory:
@@ -21,13 +28,6 @@ following in this repository's root directory:
 #+end_src
 
 ** Usage
-
-Make sure the following dependencies are satisfied before using this package:
-- emacs 30.1.
-- magit 4.3.8.
-- markdown-mode 2.7.
-- transient 0.9.1.
-
 
 Run the following to load AGitjo:
 #+begin_src emacs-lisp
