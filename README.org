@@ -11,6 +11,8 @@ users to create and edit pull requests using just the "git push" command.  This
 package is intended specifically for use with Forgejo-based (e.g. Codeberg)
 repositories.
 
+See [[https://forgejo.org/docs/latest/user/agit-support/][Forgejo's documentation about AGit-Flow]] to learn more.
+
 ** Installation
 
 Make sure the following dependencies are satisfied before using this package:
