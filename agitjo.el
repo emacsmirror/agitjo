@@ -93,6 +93,21 @@ The `type', `source', and `target' slots are passed to
 `agitjo-pullreq-refspec' to construct a pull request refspec; see for
 documentation.")
 
+(cl-defmethod agitjo--pullreq-refspec ((config agitjo--pullreq-configuration))
+  "Construct and return a pull request refspec from CONFIG.
+
+SOURCE must a local branch.  TARGET must be a remote branch.
+
+If the current topic for this project is non-nil, use that value as the
+session.  Otherwise, the source branch name will be used."
+  ;; Everything after "refs/{for|...}/{target}/" is matched as the entire
+  ;; session string.  This permits "/", so it is okay if `session' is a full
+  ;; refname.
+  (let* ((type (oref config type))
+         (source (oref config source))
+         (target-branch (agitjo--pullreq-target-name config))
+         (session (or (agitjo--get-current-topic) source)))
+    (format "%s:refs/%s/%s/%s" source type target-branch session)))
 
 (cl-defmethod agitjo--push-pullreq ((config agitjo--pullreq-configuration)
                                     &optional synchronously?)
@@ -101,22 +116,28 @@ documentation.")
 By default, run asynchronously with an unspecified return value.  If
 SYNCHRONOUSLY? is non-nil, wait for \"git push\" to finish before
 returning, and return the exit code."
-  (let ((type (oref config type))
-        (source (oref config source))
-        (target (oref config target))
+  (let ((refspec (agitjo--pullreq-refspec config))
+        (remote (agitjo--pullreq-target-remote config))
         (args (oref config args)))
-    (pcase-exhaustive (magit-split-branch-name target)
-      (`(,remote . ,_target-branch)
-       (let ((refspec (agitjo-pullreq-refspec type source target)))
-         (cond
-          (agitjo--push-pullreq-debug?
-           (message "debug (remote; refspec; args): %S; %S; %S"
-                    remote refspec args)
-           0)
-          (synchronously?
-           (magit-run-git "push" "-v" remote refspec args))
-          (t
-           (magit-run-git-async "push" "-v" remote refspec args))))))))
+    (cond
+     (agitjo--push-pullreq-debug?
+      (message "debug (remote; refspec; args): %S; %S; %S"
+               remote refspec args)
+      0)
+     (synchronously?
+      (magit-run-git "push" "-v" remote refspec args))
+     (t
+      (magit-run-git-async "push" "-v" remote refspec args)))))
+
+(cl-defmethod agitjo--pullreq-target-name ((config agitjo--pullreq-configuration))
+  "Return the pull request target's name from CONFIG."
+  (pcase-exhaustive (magit-split-branch-name (oref config target))
+    (`(,_remote . ,name) name)))
+
+(cl-defmethod agitjo--pullreq-target-remote ((config agitjo--pullreq-configuration))
+  "Return the pull request target's remote from CONFIG."
+  (pcase-exhaustive (magit-split-branch-name (oref config target))
+    (`(,remote . ,_name) remote)))
 
 (defun agitjo--valid-pullreq-type? (value)
   "Return non-nil if VALUE is a valid pull request type."
@@ -282,41 +303,6 @@ Otherwise, BRANCH is already a remote branch, and return it as-is."
                                        'face 'magit-branch-remote)))
         (if (magit-remote-branch-p remote-branch) remote-branch nil))
     branch))
-
-(defun agitjo-pullreq-refspec (type source target)
-  "Construct and return a pull request refspec from arguments.
-
-TYPE should be one of \"for|draft|for-review\", where \"for\" is a
-normal pull request.  This should always be \"for\", as this feature is
-not yet implemented in Forgejo.
-
-SOURCE must a local branch.  TARGET must be a remote branch.
-
-If the current topic for this project is non-nil, use that value as the
-session.  Otherwise, the source branch name will be used."
-  (let ((valid-types '("for" "draft" "for-review")))
-    (unless (member type valid-types)
-      (error "Pull request type is not one of %S" valid-types)))
-  ;; Everything after "refs/{for|...}/{target}/" is matched as the entire
-  ;; session string.  This permits "/", so it is okay if `session' is a full
-  ;; refname.
-  (unless (magit-ref-p source)
-    (error "Source branch is not a local branch: %S" source))
-  (let ((target-branch (agitjo--remote-branch-name target))
-        (session (or (agitjo--get-current-topic) source)))
-    (format "%s:refs/%s/%s/%s" source type target-branch session)))
-
-(defun agitjo--remote-branch-name (branch)
-  "Return the name part of remote branch BRANCH."
-  (unless (magit-remote-branch-p branch) (error "Not a remote branch: %S" branch))
-  (pcase-exhaustive (magit-split-branch-name branch)
-    (`(,_remote . ,name) name)))
-
-(defun agitjo--remote-branch-remote (branch)
-  "Return the remote part of remote branch BRANCH."
-  (unless (magit-remote-branch-p branch) (error "Not a remote branch: %S" branch))
-  (pcase-exhaustive (magit-split-branch-name branch)
-    (`(,remote . ,_name) remote)))
 
 (defun agitjo--sanitize-description (string)
   "Remove or convert problematic characters from description STRING."
