@@ -3,7 +3,7 @@
 ;; Copyright (C) 2025 Alvin Hsu
 
 ;; Author: Alvin Hsu <aurtzy@gmail.com>
-;; Homepage: https://github.com/halvin/agitjo
+;; Homepage: https://codeberg.org/halvin/agitjo
 ;; Keywords: convenience, vc, tools
 
 ;; Package-Version: 0.3.0
