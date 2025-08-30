@@ -189,11 +189,16 @@ a significant amount of content.
   (unless (equal agitjo-post--buffer-name (buffer-name))
     (user-error "Function called outside AGitjo post buffer"))
   (with-current-buffer agitjo-post--buffer-name
-    (apply #'agitjo--push-pullreq
-           `(,@agitjo-post--pullreq-args
-             ,(concat "--push-option=description=" (agitjo--sanitize-description
-                                                    (buffer-string)))))
-    (quit-window :kill (get-buffer-window))))
+    (message "Pushing to PR...")
+    ;; Don't kill the buffer when git push fails; let the user try submitting
+    ;; again or at least have a chance to save contents elsewhere.
+    (when
+        (= 0 (apply #'agitjo--push-pullreq
+                    `(,@agitjo-post--pullreq-args
+                      ,(concat "--push-option=description="
+                               (agitjo--sanitize-description (buffer-string))))))
+      (quit-window :kill (get-buffer-window)))
+    (message "Push successful.")))
 
 ;;;; Transient suffixes.
 
@@ -241,6 +246,8 @@ session.  Otherwise, the source branch name will be used."
 (defun agitjo--push-pullreq (type source target &rest args)
   "Push a pull request of TYPE, from SOURCE ref to TARGET branch.
 
+Return the exit code of \"git push ...\" after synchronously running it.
+
 TYPE, SOURCE, and TARGET will be passed to
 `agitjo-pullreq-refspec' to construct a pull request refspec; see
 for documentation.
@@ -250,9 +257,14 @@ ARGS is a list of additional arguments to pass to \"git push\"."
     (`(,remote . ,_target-branch)
      (let ((refspec (agitjo-pullreq-refspec type source target)))
        (if agitjo--push-pullreq-debug?
-           (message "debug (remote; refspec; args): %S; %S; %S"
-                    remote refspec args)
-         (magit-run-git-async "push" "-v" remote refspec args))))))
+           (progn
+             (message "debug (remote; refspec; args): %S; %S; %S"
+                      remote refspec args)
+             0)
+         ;; TODO: Make this not block.  This requires more than just using an
+         ;; async function, as we do not want to e.g. kill a post buffer when
+         ;; git push fails.
+         (magit-run-git "push" "-v" remote refspec args))))))
 
 (defun agitjo--remote-branch-name (branch)
   "Return the name part of remote branch BRANCH."
