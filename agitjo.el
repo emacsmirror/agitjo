@@ -72,17 +72,27 @@
 (defvar agitjo--push-pullreq-debug? nil)
 
 (defclass agitjo--pullreq-configuration ()
-  ((type :initarg :type)
-   (source :initarg :source)
-   (target :initarg :target)
-   (args :initarg :args))
+  ((type :initarg :type
+         :type (satisfies agitjo--valid-pullreq-type?)
+         :documentation "Pull request type.
+
+This should always be \"for\", as Forgejo does not currently implement
+this feature.")
+   (source :initarg :source
+           :type (satisfies magit-ref-p)
+           :documentation "Source reference to use for pull request.")
+   (target :initarg :target
+           :type (satisfies agitjo-get-target-branch)
+           :documentation "Target remote branch for pull request.")
+   (args :initarg :args
+         :type (list-of string)
+         :documentation "Additional arguments to pass to \"git push\"."))
   "Class for storing push information about an AGit pull request.
 
 The `type', `source', and `target' slots are passed to
 `agitjo-pullreq-refspec' to construct a pull request refspec; see for
-documentation.
+documentation.")
 
-`args' is a list of additional arguments to pass to \"git push\".")
 
 (cl-defmethod agitjo--push-pullreq ((config agitjo--pullreq-configuration)
                                     &optional synchronously?)
@@ -107,6 +117,10 @@ returning, and return the exit code."
            (magit-run-git "push" "-v" remote refspec args))
           (t
            (magit-run-git-async "push" "-v" remote refspec args))))))))
+
+(defun agitjo--valid-pullreq-type? (value)
+  "Return non-nil if VALUE is a valid pull request type."
+  (member value '("for" "draft" "for-review")))
 
 ;;;; `agitjo--topic-variable-infix'
 
