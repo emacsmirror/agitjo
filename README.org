@@ -1,10 +1,5 @@
 * AGitjo
 
-WARNING: This package is very new, and may be unstable!  Please hold off from
-using this for now if you expect something more reliable.
-
------
-
 AGitjo is a [[https://www.gnu.org/software/emacs/][GNU Emacs]] package that extends Magit with a new menu for AGit-Flow
 operations, to make them more convenient for users.  The AGit workflow enables
 users to create and edit pull requests using just the "git push" command.  This
