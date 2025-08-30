@@ -40,19 +40,13 @@
 (require 'magit)
 (require 'markdown-mode)
 (require 'pcase)
+(require 'project)
 (require 'transient)
 
 (keymap-set magit-status-mode-map "#" #'agitjo-push)
 
 (transient-append-suffix 'magit-dispatch "!"
   '("#" "AGit-Flow push" agitjo-push))
-
-;;; Options.
-
-(defvar agitjo--topic-current nil
-  "The current session topic.
-
-If nil, the PR's source branch will be used by default.")
 
 
 ;;; Classes.
@@ -87,22 +81,49 @@ Thunk that returns target branch.  If nil, read from user instead.")))
 
 ;;;; `agitjo--topic-variable-infix'
 
+(defvar agitjo--current-topics nil
+  "Alist of project root to \"current topic\" session identifier.
+
+Access and set this variable with `agitjo--get-current-topic' and
+`agitjo--set-current-topic', respectively.
+
+The session identifier is persistent per project, per Emacs session.  If
+there is no associated session identifier in this variable or it is nil,
+the pull request's source branch will be used by default.
+
+Practically, the only projects that will ever have entries in this
+variable will be Git projects.")
+
 (defclass agitjo--topic-variable-infix (transient-variable)
   ((reader :initform #'agitjo--topic-reader)
    (prompt :initform "Topic (empty to use PR source branch): ")))
 
 (cl-defmethod transient-infix-set ((_obj agitjo--topic-variable-infix) value)
-  "Set `agitjo--topic-current' to VALUE."
-  (setq agitjo--topic-current value))
+  "Set the current topic for this project to VALUE."
+  (agitjo--set-current-topic value))
 
 (cl-defmethod transient-format-value ((_obj agitjo--topic-variable-infix))
-  "Return `agitjo--topic-current' as a formatted string for display."
+  "Return the current topic as a formatted string for display."
   (concat
    "("
-   (or (and agitjo--topic-current
-            (propertize agitjo--topic-current 'face 'transient-value))
-       (propertize "<use PR source branch>" 'face 'transient-inactive-value))
+   (let ((topic (agitjo--get-current-topic)))
+     (or (and topic (propertize topic 'face 'transient-value))
+         (propertize "<use PR source branch>" 'face 'transient-inactive-value)))
    ")"))
+
+(defun agitjo--get-current-topic ()
+  "Return the current session identifier associated with the current project.
+
+May be nil."
+  (if-let* ((project (project-current))
+            (root (project-root project)))
+      (alist-get root agitjo--current-topics nil nil #'equal)))
+
+(defun agitjo--set-current-topic (new-topic)
+  "Set the current session identifier for the current project to NEW-TOPIC."
+  (if-let* ((project (project-current))
+            (root (project-root project)))
+      (setf (alist-get root agitjo--current-topics nil nil #'equal) new-topic)))
 
 (defun agitjo--topic-reader (prompt initial-input history)
   "Read and return the session identifier to use.
@@ -200,8 +221,8 @@ not yet implemented in Forgejo.
 
 SOURCE must a local branch.  TARGET must be a remote branch.
 
-If `agitjo--topic-current' is non-nil, use that value as the session.
-Otherwise, the source branch name will be used."
+If the current topic for this project is non-nil, use that value as the
+session.  Otherwise, the source branch name will be used."
   (let ((valid-types '("for" "draft" "for-review")))
     (unless (member type valid-types)
       (error "Pull request type is not one of %S" valid-types)))
@@ -212,7 +233,7 @@ Otherwise, the source branch name will be used."
         ;; source since it can only be a local branch, but git also allows local
         ;; references; if we permit using local references as sources, could
         ;; this default-to-source cause issues in the refspec?
-        (session (or agitjo--topic-current source)))
+        (session (or (agitjo--get-current-topic) source)))
     (format "%s:refs/%s/%s/%s" source type target-branch session)))
 
 (defvar agitjo--push-pullreq-debug? nil)
