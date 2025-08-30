@@ -5,10 +5,11 @@ using this for now if you expect something more reliable.
 
 -----
 
-AGitjo is a [[https://www.gnu.org/software/emacs/][GNU Emacs]] package that provides a transient interface for managing
-forge pull requests using AGit-Flow, specifically for Forgejo-based
-(e.g. Codeberg) repositories.  This package aims to implement facilities that
-make the AGit workflow more convenient for users.
+AGitjo is a [[https://www.gnu.org/software/emacs/][GNU Emacs]] package that extends Magit with a new menu for AGit-Flow
+operations, to make them more convenient for users.  The AGit workflow enables
+users to create and edit pull requests using just the "git push" command.  This
+package is intended specifically for use with Forgejo-based (e.g. Codeberg)
+repositories.
 
 ** Installation
 

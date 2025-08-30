@@ -24,13 +24,11 @@
 
 ;;; Commentary:
 
-;; AGitjo provides a transient interface for managing forge pull requests using
-;; AGit-Flow, specifically for Forgejo-based (e.g. Codeberg) repositories.  This
-;; package aims to implement facilities that make the AGit workflow more
-;; convenient for users.
-
-;; Some integration with Magit is also included.  It does not make use of the
-;; Forgejo API.
+;; AGitjo extends Magit with a new menu for AGit-Flow operations, to make them
+;; more convenient for users.  The AGit workflow enables users to create and
+;; edit pull requests using just the "git push" command.  This package is
+;; intended specifically for use with Forgejo-based (e.g. Codeberg)
+;; repositories.
 
 ;;; Code:
 
