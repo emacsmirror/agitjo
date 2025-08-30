@@ -313,13 +313,13 @@ ARGS is a list of transient arguments to be passed to \"git push\"."
 ;;;;; Definitions.
 
 (transient-define-infix agitjo-force-push-switch ()
-  "Force-push to an existing pull request.
+  "Force-push a pull request, if it exists (or create a new PR anyways).
 
 If this is not passed, a new pull request will be created with the topic
 identifier, even if a pull request with the same ID exists."
   :class 'transient-switch
   :argument "--push-option=force-push=true"
-  :description "Force-push existing PR")
+  :description "Force-push")
 
 (transient-define-infix agitjo-title-option ()
   "Title of pull request.
