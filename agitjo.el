@@ -207,6 +207,16 @@ PROMPT, INITIAL-INPUT, and HISTORY are as defined in `read-string'."
 (defvar-local agitjo-post--pullreq-config nil
   "Buffer-local storage for configuration to pass to `agitjo--push-pullreq'.")
 
+;; Follow orderings and file names for templates as documented here:
+;; <https://forgejo.org/docs/latest/user/issue-pull-request-templates/>
+
+(defvar agitjo-post--pullreq-template-directories '(".forgejo" ".gitea" ".github")
+  "Directories where pull request templates are expected.")
+
+(defvar agitjo-post--pullreq-template-files '("PULL_REQUEST_TEMPLATE.md"
+                                              "pull_request_template.md")
+  "Supported pull request template file names.")
+
 (defun agitjo-post--setup-buffer (config)
   "Set up buffer for editing pull request posts.
 
@@ -219,11 +229,11 @@ CONFIG is the pull request configuration that will be passed to
             header-line-format "C-c C-c to confirm and send; C-c C-k to cancel.")
       (select-window (display-buffer buffer))
       (if (= (buffer-size) 0)
-          (agitjo-post--erase-and-insert-template)
+          (agitjo-post--erase-and-insert-pullreq-template)
         (magit-read-char-case "A previous draft exists: " nil
           (?r "[r]esume editing this draft")
           (?d "[d]iscard and start over?"
-              (agitjo-post--erase-and-insert-template)))))))
+              (agitjo-post--erase-and-insert-pullreq-template)))))))
 
 (defun agitjo-post--buffer ()
   "Find the post draft file for this repository and return its buffer."
@@ -233,10 +243,22 @@ CONFIG is the pull request configuration that will be passed to
          (_ (make-directory (file-name-directory file) t)))
     (find-file-noselect file)))
 
-(defun agitjo-post--erase-and-insert-template ()
+(defun agitjo-post--erase-and-insert-pullreq-template ()
   "Erase the current buffer and insert PR template."
-  ;; TODO: Insert .forgejo/.github/... template.
-  (erase-buffer))
+  (erase-buffer)
+  ;; TODO: Support YAML templates.
+  (insert-file-contents (agitjo-post--find-pullreq-template-file)))
+
+(defun agitjo-post--find-pullreq-template-file ()
+  "Find and return the preferred pull request template file from repository."
+  (seq-some (lambda (dir)
+              (seq-some (lambda (file)
+                          (magit-with-toplevel
+                            (let ((filename (expand-file-name file dir)))
+                              (if (file-exists-p filename)
+                                  filename))))
+                        agitjo-post--pullreq-template-files))
+            agitjo-post--pullreq-template-directories))
 
 ;;;; Definitions.
 
