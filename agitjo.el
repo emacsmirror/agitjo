@@ -306,7 +306,7 @@ information on slots."
                       (target-branch (agitjo-get-target-branch branch)))
                 target-branch
               (let ((new-upstream (magit-read-remote-branch
-                                   (format "Set upstream of %s and push PR to: "
+                                   (format "Target (and set as %s upstream): "
                                            current-branch))))
                 (magit-set-upstream-branch current-branch new-upstream)
                 new-upstream)))
@@ -325,7 +325,7 @@ information on slots."
 (transient-define-suffix agitjo-push-pullreq-current ()
   :class 'agitjo-push-pullreq-suffix
   :source #'magit-get-current-branch
-  :target (lambda () (magit-read-remote-branch "Push PR to: "))
+  :target (lambda () (magit-read-remote-branch "Target: "))
   :inapt-if-not #'magit-get-current-branch
   :description "elsewhere"
   (interactive)
@@ -334,16 +334,16 @@ information on slots."
 (transient-define-suffix agitjo-push-pullreq-local-branch ()
   "Push AGit-Flow PR from some local branch to some remote branch."
   :class 'agitjo-push-pullreq-suffix
-  :source (lambda () (magit-read-local-branch "Source local branch: "))
-  :target (lambda () (magit-read-remote-branch "Target remote branch: "))
+  :source (lambda () (magit-read-local-branch "Source: "))
+  :target (lambda () (magit-read-remote-branch "Target: "))
   :description "local branch"
   (interactive)
   (call-interactively #'agitjo-push-pullreq))
 
 (transient-define-suffix agitjo-push-pullreq-local-branch-or-ref ()
   :class 'agitjo-push-pullreq-suffix
-  :source (lambda () (magit-read-local-branch-or-ref "Source local branch or ref: "))
-  :target (lambda () (magit-read-remote-branch "Target remote branch: "))
+  :source (lambda () (magit-read-local-branch-or-ref "Source: "))
+  :target (lambda () (magit-read-remote-branch "Target: "))
   :description "local branch or ref"
   (interactive)
   (call-interactively #'agitjo-push-pullreq))
