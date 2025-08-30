@@ -126,28 +126,41 @@ PROMPT, INITIAL-INPUT, and HISTORY are as defined in `read-string'."
 
 ;;;; Auxiliary.
 
-(defvar agitjo-post--buffer-name "*AGitjo-post*")
+(defvar agitjo-post--draft-file-name "agitjo/pullreq-draft"
+  "The relative file name for AGitjo PR draft, from the repository's gitdir.")
 
 (defvar-local agitjo-post--pullreq-args nil
   "Buffer-local storage for arguments to pass to `agitjo--push-pullreq'.")
 
-;; TODO: Back the buffer by a file, so it can have a chance of recovery in case
-;; of some interruption.
 (defun agitjo-post--setup-buffer (args)
   "Set up buffer for editing pull request posts.
 
 ARGS is a list of arguments to be passed to `agitjo--push-pullreq'."
-  (let* ((buffer (get-buffer-create agitjo-post--buffer-name)))
+  (let* ((buffer (agitjo-post--buffer)))
     (with-current-buffer buffer
       (agitjo-post-mode)
-      (setq agitjo-post--pullreq-args args)
-      (insert "\
-<!-- WARNING: Recovery facilities for this buffer have not yet been implemented.
-This buffer is NOT backed by a file, nor any history, so it is recommended to
-prepare descriptions elsewhere to copy here if a description is going to contain
-a significant amount of content.
-(this comment can be deleted.) -->"))
-    (select-window (display-buffer buffer))))
+      (setq agitjo-post--pullreq-args args
+            header-line-format "C-c C-c to confirm and send; C-c C-k to cancel.")
+      (select-window (display-buffer buffer))
+      (if (= (buffer-size) 0)
+          (agitjo-post--erase-and-insert-template)
+        (magit-read-char-case "A previous draft exists: " nil
+          (?r "[r]esume editing this draft")
+          (?d "[d]iscard and start over?"
+              (agitjo-post--erase-and-insert-template)))))))
+
+(defun agitjo-post--buffer ()
+  "Find the post draft file for this repository and return its buffer."
+  (let* ((gitdir (or (magit-gitdir)
+                     (error "No gitdir associated with this directory")))
+         (file (expand-file-name agitjo-post--draft-file-name gitdir))
+         (_ (make-directory (file-name-directory file) t)))
+    (find-file-noselect file)))
+
+(defun agitjo-post--erase-and-insert-template ()
+  "Erase the current buffer and insert PR template."
+  ;; TODO: Insert .forgejo/.github/... template.
+  (erase-buffer))
 
 ;;;; Definitions.
 
@@ -169,25 +182,32 @@ a significant amount of content.
 (defun agitjo-post-cancel ()
   "Cancel pull request post."
   (interactive)
-  (quit-window :kill (get-buffer-window agitjo-post--buffer-name))
+  (with-current-buffer (agitjo-post--buffer)
+    (save-buffer)
+    (quit-window :kill (get-buffer-window)))
   (message "Canceled post creation."))
 
 (defun agitjo-post-confirm ()
   "Confirm pull request post."
   (interactive)
-  (unless (equal agitjo-post--buffer-name (buffer-name))
-    (user-error "Function called outside AGitjo post buffer"))
-  (with-current-buffer agitjo-post--buffer-name
-    (message "Pushing to PR...")
-    ;; Don't kill the buffer when git push fails; let the user try submitting
-    ;; again or at least have a chance to save contents elsewhere.
-    (when
-        (= 0 (apply #'agitjo--push-pullreq
-                    `(,@agitjo-post--pullreq-args
-                      ,(concat "--push-option=description="
-                               (agitjo--sanitize-description (buffer-string))))))
-      (quit-window :kill (get-buffer-window)))
-    (message "Push successful.")))
+  (let ((post-buffer (agitjo-post--buffer)))
+    (unless (equal (buffer-name post-buffer) (buffer-name))
+      (user-error "Function called outside AGitjo post buffer"))
+    (with-current-buffer post-buffer
+      (message "Pushing to PR...")
+      ;; Don't kill the buffer when git push fails; let the user try submitting
+      ;; again or at least have a chance to save contents elsewhere.
+      (when
+          (= 0 (apply #'agitjo--push-pullreq
+                      `(,@agitjo-post--pullreq-args
+                        ,(concat "--push-option=description="
+                                 (agitjo--sanitize-description (buffer-string))))))
+        ;; Since PR was successfully pushed, we don't need to keep this draft
+        ;; anymore.  Erase so that we don't prompt to discard/keep next time.
+        (erase-buffer)
+        (save-buffer)
+        (quit-window :kill (get-buffer-window))
+        (message "Push successful.")))))
 
 ;;;; Transient suffixes.
 
