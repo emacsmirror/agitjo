@@ -179,9 +179,8 @@ a significant amount of content.
 (defun agitjo-post-cancel ()
   "Cancel pull request post."
   (interactive)
-  (with-current-buffer agitjo-post--buffer-name
-    (quit-window :kill (get-buffer-window))
-    (message "Canceled post creation.")))
+  (quit-window :kill (get-buffer-window agitjo-post--buffer-name))
+  (message "Canceled post creation."))
 
 (defun agitjo-post-confirm ()
   "Confirm pull request post."
