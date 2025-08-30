@@ -69,6 +69,47 @@
   "Return pull request target for OBJ from calling the target slot's function."
   (funcall (oref obj target)))
 
+;;;; `agitjo--pullreq-configuration'
+
+(defvar agitjo--push-pullreq-debug? nil)
+
+(defclass agitjo--pullreq-configuration ()
+  ((type :initarg :type)
+   (source :initarg :source)
+   (target :initarg :target)
+   (args :initarg :args))
+  "Class for storing push information about an AGit pull request.
+
+The `type', `source', and `target' slots are passed to
+`agitjo-pullreq-refspec' to construct a pull request refspec; see for
+documentation.
+
+`args' is a list of additional arguments to pass to \"git push\".")
+
+(cl-defmethod agitjo--push-pullreq ((config agitjo--pullreq-configuration)
+                                    &optional synchronously?)
+  "Push an AGit pull request with CONFIG configuration.
+
+By default, run asynchronously with an unspecified return value.  If
+SYNCHRONOUSLY? is non-nil, wait for \"git push\" to finish before
+returning, and return the exit code."
+  (let ((type (oref config type))
+        (source (oref config source))
+        (target (oref config target))
+        (args (oref config args)))
+    (pcase-exhaustive (magit-split-branch-name target)
+      (`(,remote . ,_target-branch)
+       (let ((refspec (agitjo-pullreq-refspec type source target)))
+         (cond
+          (agitjo--push-pullreq-debug?
+           (message "debug (remote; refspec; args): %S; %S; %S"
+                    remote refspec args)
+           0)
+          (synchronously?
+           (magit-run-git "push" "-v" remote refspec args))
+          (t
+           (magit-run-git-async "push" "-v" remote refspec args))))))))
+
 ;;;; `agitjo--topic-variable-infix'
 
 (defvar agitjo--current-topics nil
@@ -129,17 +170,18 @@ PROMPT, INITIAL-INPUT, and HISTORY are as defined in `read-string'."
 (defvar agitjo-post--draft-file-name "agitjo/pullreq-draft"
   "The relative file name for AGitjo PR draft, from the repository's gitdir.")
 
-(defvar-local agitjo-post--pullreq-args nil
-  "Buffer-local storage for arguments to pass to `agitjo--push-pullreq'.")
+(defvar-local agitjo-post--pullreq-config nil
+  "Buffer-local storage for configuration to pass to `agitjo--push-pullreq'.")
 
-(defun agitjo-post--setup-buffer (args)
+(defun agitjo-post--setup-buffer (config)
   "Set up buffer for editing pull request posts.
 
-ARGS is a list of arguments to be passed to `agitjo--push-pullreq'."
+CONFIG is the pull request configuration that will be passed to
+`agitjo--push-pullreq'."
   (let* ((buffer (agitjo-post--buffer)))
     (with-current-buffer buffer
       (agitjo-post-mode)
-      (setq agitjo-post--pullreq-args args
+      (setq agitjo-post--pullreq-config config
             header-line-format "C-c C-c to confirm and send; C-c C-k to cancel.")
       (select-window (display-buffer buffer))
       (if (= (buffer-size) 0)
@@ -194,14 +236,17 @@ ARGS is a list of arguments to be passed to `agitjo--push-pullreq'."
     (unless (equal (buffer-name post-buffer) (buffer-name))
       (user-error "Function called outside AGitjo post buffer"))
     (with-current-buffer post-buffer
+      (oset agitjo-post--pullreq-config args
+            (cons (concat "--push-option=description="
+                          (agitjo--sanitize-description (buffer-string)))
+                  (oref agitjo-post--pullreq-config args)))
       (message "Pushing to PR...")
       ;; Don't kill the buffer when git push fails; let the user try submitting
       ;; again or at least have a chance to save contents elsewhere.
-      (when
-          (= 0 (apply #'agitjo--push-pullreq
-                      `(,@agitjo-post--pullreq-args
-                        ,(concat "--push-option=description="
-                                 (agitjo--sanitize-description (buffer-string))))))
+      ;; TODO: Make this not block.  This requires more than just using an
+      ;; async function, as we do not want to e.g. kill a post buffer when
+      ;; git push fails.
+      (when (= 0 (agitjo--push-pullreq agitjo-post--pullreq-config :synchronously))
         ;; Since PR was successfully pushed, we don't need to keep this draft
         ;; anymore.  Erase so that we don't prompt to discard/keep next time.
         (erase-buffer)
@@ -249,31 +294,6 @@ session.  Otherwise, the source branch name will be used."
         (session (or (agitjo--get-current-topic) source)))
     (format "%s:refs/%s/%s/%s" source type target-branch session)))
 
-(defvar agitjo--push-pullreq-debug? nil)
-
-(defun agitjo--push-pullreq (type source target &rest args)
-  "Push a pull request of TYPE, from SOURCE ref to TARGET branch.
-
-Return the exit code of \"git push ...\" after synchronously running it.
-
-TYPE, SOURCE, and TARGET will be passed to
-`agitjo-pullreq-refspec' to construct a pull request refspec; see
-for documentation.
-
-ARGS is a list of additional arguments to pass to \"git push\"."
-  (pcase-exhaustive (magit-split-branch-name target)
-    (`(,remote . ,_target-branch)
-     (let ((refspec (agitjo-pullreq-refspec type source target)))
-       (if agitjo--push-pullreq-debug?
-           (progn
-             (message "debug (remote; refspec; args): %S; %S; %S"
-                      remote refspec args)
-             0)
-         ;; TODO: Make this not block.  This requires more than just using an
-         ;; async function, as we do not want to e.g. kill a post buffer when
-         ;; git push fails.
-         (magit-run-git "push" "-v" remote refspec args))))))
-
 (defun agitjo--remote-branch-name (branch)
   "Return the name part of remote branch BRANCH."
   (unless (magit-remote-branch-p branch) (error "Not a remote branch: %S" branch))
@@ -310,12 +330,16 @@ information on slots."
          (force-push? (transient-arg-value "--push-option=force-push=true" args))
          (source (agitjo-pullreq-source obj))
          (target (agitjo-pullreq-target obj))
-         ;; TODO: Implement using pull request type from transient state.
-         ;; Hard-code as "for" for now.
-         (pullreq-args (list "for" source target args)))
+         (pullreq-config (agitjo--pullreq-configuration
+                          ;; TODO: Implement using pull request type from
+                          ;; transient state.  Hard-code as "for" for now.
+                          :type "for"
+                          :source source
+                          :target target
+                          :args args)))
     (if force-push?
-        (apply #'agitjo--push-pullreq pullreq-args)
-      (agitjo-post--setup-buffer pullreq-args))))
+        (agitjo--push-pullreq pullreq-config)
+      (agitjo-post--setup-buffer pullreq-config))))
 
 (transient-define-suffix agitjo-push-pullreq-current-to-upstream ()
   :class 'agitjo-push-pullreq-suffix
