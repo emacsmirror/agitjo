@@ -407,9 +407,6 @@ will be used as the topic."
   ["Configure"
    ("C" "Set variables..." magit-branch-configure)])
 
-(transient-augment-suffix agitjo-push
-  :inapt-if-not #'magit-get-current-branch)
-
 ;;; Provide library.
 (provide 'agitjo)
 ;;; agitjo.el ends here
