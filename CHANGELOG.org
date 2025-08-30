@@ -2,6 +2,11 @@
 
 ** Unreleased
 
+** [[https://codeberg.org/halvin/agitjo/src/tag/v0.3.0][0.3.0]] - 2025-07-29
+
+This version removes the experimental warning label.  Stability is not quite yet
+guaranteed, but radical changes to the code should be less likely now.
+
 *** Added
 
 - Add suffix command ~agitjo-push-pullreq-local-branch~ to menu for pushing pull
