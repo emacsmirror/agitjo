@@ -55,29 +55,19 @@
 
 (defclass agitjo-push-pullreq-suffix (transient-suffix)
   ((source :initarg :source
-           :initform nil
-           :type (or function null)
-           :documentation "\
-Thunk that returns source reference.  If nil, read from user instead.")
+           :type function
+           :documentation "Thunk that returns local source branch or reference.")
    (target :initarg :target
-           :initform nil
-           :type (or function null)
-           :documentation "\
-Thunk that returns target branch.  If nil, read from user instead.")))
+           :type function
+           :documentation "Thunk that returns remote target branch.")))
 
 (cl-defmethod agitjo-pullreq-source ((obj agitjo-push-pullreq-suffix))
-  "Return pull request source for OBJ, as a string.  Prompt if needed."
-  (let ((value (oref obj source)))
-    (cond
-     ((functionp value) (funcall value))
-     (t (magit-read-local-branch "Source local branch: ")))))
+  "Return pull request source for OBJ from calling the source slot's function."
+  (funcall (oref obj source)))
 
 (cl-defmethod agitjo-pullreq-target ((obj agitjo-push-pullreq-suffix))
-  "Return pull request target for OBJ, as a string.  Prompt if needed."
-  (let ((value (oref obj target)))
-    (cond
-     ((functionp value) (funcall value))
-     (t (magit-read-remote-branch "Target remote branch: ")))))
+  "Return pull request target for OBJ from calling the target slot's function."
+  (funcall (oref obj target)))
 
 ;;;; `agitjo--topic-variable-infix'
 
@@ -230,13 +220,12 @@ session.  Otherwise, the source branch name will be used."
   (let ((valid-types '("for" "draft" "for-review")))
     (unless (member type valid-types)
       (error "Pull request type is not one of %S" valid-types)))
-  (unless (magit-local-branch-p source)
+  ;; Everything after "refs/{for|...}/{target}/" is matched as the entire
+  ;; session string.  This permits "/", so it is okay if `session' is a full
+  ;; refname.
+  (unless (magit-ref-p source)
     (error "Source branch is not a local branch: %S" source))
   (let ((target-branch (agitjo--remote-branch-name target))
-        ;; TODO: How do we handle local references?  We can currently default to
-        ;; source since it can only be a local branch, but git also allows local
-        ;; references; if we permit using local references as sources, could
-        ;; this default-to-source cause issues in the refspec?
         (session (or (agitjo--get-current-topic) source)))
     (format "%s:refs/%s/%s/%s" source type target-branch session)))
 
@@ -289,10 +278,12 @@ ARGS is a list of additional arguments to pass to \"git push\"."
 (transient-define-suffix agitjo-push-pullreq (args)
   "Push with AGit-Flow to create or edit a pull request.
 
-This is meant to be modified with keywords in suffix specifications.
-See `agitjo-push-pullreq-suffix' for information on slots.
+ARGS is a list of transient arguments to be passed to \"git push\".
 
-ARGS is a list of transient arguments to be passed to \"git push\"."
+This implements `agitjo-push-pullreq-suffix', and acts as a template
+that other suffixes can use.  The `source' and `target' slots are not
+set before calling this command.  See class documentation for
+information on slots."
   :class 'agitjo-push-pullreq-suffix
   (interactive (list (transient-args 'agitjo-push)))
   (let* ((obj (transient-suffix-object))
@@ -337,6 +328,23 @@ ARGS is a list of transient arguments to be passed to \"git push\"."
   :target (lambda () (magit-read-remote-branch "Push PR to: "))
   :inapt-if-not #'magit-get-current-branch
   :description "elsewhere"
+  (interactive)
+  (call-interactively #'agitjo-push-pullreq))
+
+(transient-define-suffix agitjo-push-pullreq-local-branch ()
+  "Push AGit-Flow PR from some local branch to some remote branch."
+  :class 'agitjo-push-pullreq-suffix
+  :source (lambda () (magit-read-local-branch "Source local branch: "))
+  :target (lambda () (magit-read-remote-branch "Target remote branch: "))
+  :description "local branch"
+  (interactive)
+  (call-interactively #'agitjo-push-pullreq))
+
+(transient-define-suffix agitjo-push-pullreq-local-branch-or-ref ()
+  :class 'agitjo-push-pullreq-suffix
+  :source (lambda () (magit-read-local-branch-or-ref "Source local branch or ref: "))
+  :target (lambda () (magit-read-remote-branch "Target remote branch: "))
+  :description "local branch or ref"
   (interactive)
   (call-interactively #'agitjo-push-pullreq))
 
@@ -394,7 +402,8 @@ will be used as the topic."
     ("u" agitjo-push-pullreq-current-to-upstream)
     ("e" agitjo-push-pullreq-current)]
   ["Push PR from"
-   ("o" "another branch" agitjo-push-pullreq)]
+   ("l" agitjo-push-pullreq-local-branch)
+   ("r" agitjo-push-pullreq-local-branch-or-ref)]
   ["Configure"
    ("C" "Set variables..." magit-branch-configure)])
 
