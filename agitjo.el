@@ -121,8 +121,9 @@ returning, and return the exit code."
         (args (oref config args)))
     (cond
      (agitjo--push-pullreq-debug?
-      (message "debug (remote; refspec; args): %S; %S; %S"
-               remote refspec args)
+      (message "debug: (remote; refspec; args): %s; %s; %S"
+               remote refspec (seq-map #'substring-no-properties
+                                       (flatten-list args)))
       0)
      (synchronously?
       (magit-run-git "push" "-v" remote refspec args))
