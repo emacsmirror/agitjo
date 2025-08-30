@@ -2,6 +2,27 @@
 
 ** Unreleased
 
+*** Added
+
+- Add suffix command ~agitjo-push-pullreq-local-branch~ to menu for pushing pull
+  requests from local branch.
+- Add suffix command ~agitjo-push-pullreq-local-branch-or-ref~ to menu for
+  pushing pull requests from local branch or reference.
+- Add facilities for saving, recovering, and discarding pull request description
+  drafts.
+- Insert markdown templates for new PR drafts when available, like
+  =.forgejo/PULL_REQUEST_TEMPLATE.md=.
+
+*** Changed
+
+- Make the current topic persist per repository instead of globally.
+- Make the ~git push~ operation synchronous when submitting a new PR, to prevent
+  data loss from losing the draft post buffer in case push fails.
+- No longer set default values for the ~source~ and ~target~ slot for
+  suffix command ~agitjo-push-pullreq~.
+- Don't make ~agitjo-push~ inapt if there's no current branch.
+- Remove function ~agitjo-pullreq-refspec~; it is now an internal method.
+
 ** [[https://codeberg.org/halvin/agitjo/src/tag/v0.2.0][0.2.0]] - 2025-07-28
 
 *** Added
