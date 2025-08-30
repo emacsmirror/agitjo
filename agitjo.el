@@ -247,7 +247,8 @@ CONFIG is the pull request configuration that will be passed to
   "Erase the current buffer and insert PR template."
   (erase-buffer)
   ;; TODO: Support YAML templates.
-  (insert-file-contents (agitjo-post--find-pullreq-template-file)))
+  (if-let* ((file (agitjo-post--find-pullreq-template-file)))
+      (insert-file-contents file)))
 
 (defun agitjo-post--find-pullreq-template-file ()
   "Find and return the preferred pull request template file from repository."
