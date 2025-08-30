@@ -2,6 +2,11 @@
 
 ** Unreleased
 
+*** Fixed
+
+- Fix an error that occurs when no pull request template exists in the
+  repository.
+
 ** [[https://codeberg.org/halvin/agitjo/src/tag/v0.3.0][0.3.0]] - 2025-07-29
 
 This version removes the experimental warning label.  Stability is not quite yet
