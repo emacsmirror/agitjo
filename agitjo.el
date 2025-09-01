@@ -268,11 +268,11 @@ CONFIG is the pull request configuration that will be passed to
             header-line-format "C-c C-c to confirm and send; C-c C-k to cancel.")
       (select-window (display-buffer buffer))
       (if (= (buffer-size) 0)
-          (agitjo-post--erase-and-insert-pullreq-template)
+          (agitjo-post--replace-buffer-with-pullreq-template)
         (magit-read-char-case "A previous draft exists: " nil
           (?r "[r]esume editing this draft")
           (?d "[d]iscard and start over?"
-              (agitjo-post--erase-and-insert-pullreq-template)))))))
+              (agitjo-post--replace-buffer-with-pullreq-template)))))))
 
 (defun agitjo-post--buffer ()
   "Find the post draft file for this repository and return its buffer."
@@ -282,17 +282,18 @@ CONFIG is the pull request configuration that will be passed to
          (_ (make-directory (file-name-directory file) t)))
     (find-file-noselect file)))
 
-(defun agitjo-post--erase-and-insert-pullreq-template ()
-  "Erase the current buffer and insert PR template."
+(defun agitjo-post--insert-git-object-contents (object)
+  "Insert contents of git object OBJECT at point."
+  (magit-git-insert "cat-file" "-p" object))
+
+(defun agitjo-post--replace-buffer-with-pullreq-template ()
+  "Replace current buffer with the a pull request template, if there is any."
+  (erase-buffer)
   ;; TODO: Support YAML templates.
-  (if-let* ((file (agitjo-post--find-pullreq-template-file)))
-      (save-excursion
-        (insert-file-contents file nil nil nil :replace)
-        (goto-char (point-min))
-        (when-let* ((pos-end-of-front-matter (agitjo-post--point-after-front-matter)))
-          (delete-region (point) pos-end-of-front-matter))
-        (delete-all-space))
-    (erase-buffer)))
+  (when-let* ((object (agitjo-post--find-pullreq-template-object)))
+    (save-excursion (agitjo-post--insert-git-object-contents object))
+    (when-let* ((pos-end-of-front-matter (agitjo-post--point-after-front-matter)))
+      (delete-region (point) pos-end-of-front-matter))))
 
 (defun agitjo-post--point-after-front-matter ()
   "Return position of the end of the Markdown front matter at point.
@@ -307,18 +308,24 @@ The \"end\" refers to the start of the next line after the second
          (re-search-forward (markdown-get-yaml-metadata-end-border nil) nil t)
          (point))))
 
-(defun agitjo-post--find-pullreq-template-file ()
-  "Find and return the preferred pull request template file from repository.
+(defun agitjo-post--find-pullreq-template-object ()
+  "Return the preferred pull request template file's object from the main branch.
 
 May return nil if no template file is found."
-  (seq-some (lambda (dir)
-              (seq-some (lambda (file)
-                          (magit-with-toplevel
-                            (let ((filename (expand-file-name file dir)))
-                              (if (file-exists-p filename)
-                                  filename))))
-                        agitjo-post--pullreq-template-files))
-            agitjo-post--pullreq-template-directories))
+  (let* ((primary-remote (magit-primary-remote))
+         (branch (or (magit-main-branch) "HEAD"))
+         (ref (if primary-remote (concat primary-remote "/" branch) branch))
+         (files (seq-mapcat (lambda (dir)
+                              (seq-map (lambda (file)
+                                         (file-name-concat dir file))
+                                       agitjo-post--pullreq-template-files))
+                            agitjo-post--pullreq-template-directories))
+         (found-files (magit-git-items "ls-tree" "-z" "-r"
+                                       "--full-tree" "--name-only"
+                                       ref "--" files)))
+    (if (null found-files)
+        nil
+      (concat ref ":" (car found-files)))))
 
 ;;;; Definitions.
 
