@@ -461,10 +461,11 @@ will be used as the topic."
 
 (transient-define-prefix agitjo-push ()
   "Push to a Forgejo-based repository, using AGit-Flow."
-  ["Arguments"
+  ["Session options"
    ("-f" agitjo-force-push-switch)
-   ("-t" agitjo-title-option)
    ("-s" agitjo-topic-variable)]
+  ["New pull request options"
+   ("-t" agitjo-title-option)]
   [ :inapt-if-not magit-get-current-branch
     :description agitjo-push--pullreq-current-description
     ("u" agitjo-push-pullreq-current-to-upstream)
