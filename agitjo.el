@@ -86,7 +86,7 @@ this feature.")
            :documentation "Target remote branch for pull request.")
    (args :initarg :args
          :type (list-of string)
-         :documentation "Additional arguments to pass to \"git push\"."))
+         :documentation "Transient arguments."))
   "Class for storing push information about an AGit pull request.
 
 The `type', `source', and `target' slots are passed to
@@ -109,6 +109,30 @@ session.  Otherwise, the source branch name will be used."
          (session (or (agitjo--get-current-topic) source)))
     (format "%s:refs/%s/%s/%s" source type target-branch session)))
 
+(cl-defmethod agitjo--push-args ((config agitjo--pullreq-configuration))
+  "Return arguments for CONFIG to pass to \"git push\"."
+  (let* ((args (oref config args))
+         (source (oref config source))
+         ;; Operate with the assumption that all transient arguments prefixed
+         ;; with "--" are to be passed to git push; otherwise, ignore everything
+         ;; else.
+         (push-args (seq-filter (lambda (arg)
+                                  (and (stringp arg) (string-prefix-p "--" arg)))
+                                args)))
+    ;; HACK: Prepend "WIP: " to signal to Forgejo that the PR is a draft.
+    ;; Eventually, when the "draft|for-review" part of PR refspecs are
+    ;; implemented in Forgejo, we should be able to use that instead of doing
+    ;; this.
+    (when (transient-arg-value "draft" args)
+      (if-let* ((title-arg-prefix "--push-option=title=")
+                (title (transient-arg-value title-arg-prefix push-args))
+                (title-arg-cell (member (concat title-arg-prefix title)
+                                        push-args)))
+          (setcar title-arg-cell (concat title-arg-prefix "WIP: " title))
+        (push (concat title-arg-prefix "WIP: " (magit-rev-format "%s" source))
+              push-args)))
+    push-args))
+
 (cl-defmethod agitjo--push-pullreq ((config agitjo--pullreq-configuration)
                                     &optional synchronously?)
   "Push an AGit pull request with CONFIG configuration.
@@ -118,7 +142,7 @@ SYNCHRONOUSLY? is non-nil, wait for \"git push\" to finish before
 returning, and return the exit code."
   (let ((refspec (agitjo--pullreq-refspec config))
         (remote (agitjo--pullreq-target-remote config))
-        (args (oref config args)))
+        (args (agitjo--push-args config)))
     (cond
      (agitjo--push-pullreq-debug?
       (message "debug: (remote; refspec; args): %s; %s; %S"
@@ -195,6 +219,21 @@ May be nil."
 
 PROMPT, INITIAL-INPUT, and HISTORY are as defined in `read-string'."
   (read-string prompt initial-input history))
+
+;;;; `agitjo--pullreq-type-switches-infix'.
+
+(defclass agitjo--pullreq-type-switches-infix (transient-switches) ())
+
+(cl-defmethod transient-init-value ((obj agitjo--pullreq-type-switches-infix))
+  "Initialize OBJ value."
+  (or (cl-call-next-method) (oset obj value "normal")))
+
+(cl-defmethod transient-infix-read ((obj agitjo--pullreq-type-switches-infix))
+  "Cycle through each switch for OBJ, excluding the no-switch option."
+  (let ((choices (mapcar (apply-partially #'format (oref obj argument-format))
+                         (oref obj choices)))
+        (value (oref obj value)))
+    (or (cadr (member value choices)) (car choices))))
 
 
 ;;; Modes.
@@ -464,6 +503,15 @@ will be used as the topic."
   :class 'agitjo--topic-variable-infix
   :description "Session/topic")
 
+;; This is marked as internal with the expectation that it'll be refactored when
+;; Forgejo gets support for specifying pull request types in refspecs.
+(transient-define-infix agitjo--pullreq-type-switches ()
+  :class 'agitjo--pullreq-type-switches-infix
+  :argument-format "%s"
+  :argument-regexp "\\(normal\\|draft\\)"
+  :choices '("normal" "draft")
+  :description "Pull request type")
+
 ;;;; Transient prefixes.
 
 ;;;;; Auxiliary.
@@ -483,7 +531,9 @@ will be used as the topic."
    ("-f" agitjo-force-push-switch)
    ("-s" agitjo-topic-variable)]
   ["New pull request options"
-   ("-t" agitjo-title-option)]
+   :pad-keys t
+   ("-t" agitjo-title-option)
+   ("+" agitjo--pullreq-type-switches)]
   [ :inapt-if-not magit-get-current-branch
     :description agitjo-push--pullreq-current-description
     ("u" agitjo-push-pullreq-current-to-upstream)
