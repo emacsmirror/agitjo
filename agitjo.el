@@ -251,7 +251,9 @@ CONFIG is the pull request configuration that will be passed to
       (insert-file-contents file)))
 
 (defun agitjo-post--find-pullreq-template-file ()
-  "Find and return the preferred pull request template file from repository."
+  "Find and return the preferred pull request template file from repository.
+
+May return nil if no template file is found."
   (seq-some (lambda (dir)
               (seq-some (lambda (file)
                           (magit-with-toplevel
