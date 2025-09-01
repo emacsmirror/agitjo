@@ -197,7 +197,7 @@ variable will be Git projects.")
    "("
    (let ((topic (agitjo--get-current-topic)))
      (or (and topic (propertize topic 'face 'transient-value))
-         (propertize "<use PR source branch>" 'face 'transient-inactive-value)))
+         (propertize "<use PR source branch>" 'face 'transient-value)))
    ")"))
 
 (defun agitjo--get-current-topic ()
