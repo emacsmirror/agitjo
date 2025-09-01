@@ -268,11 +268,11 @@ CONFIG is the pull request configuration that will be passed to
             header-line-format "C-c C-c to confirm and send; C-c C-k to cancel.")
       (select-window (display-buffer buffer))
       (if (= (buffer-size) 0)
-          (agitjo-post--replace-buffer-with-pullreq-template)
+          (agitjo-post--replace-buffer-with-new-description config)
         (magit-read-char-case "A previous draft exists: " nil
           (?r "[r]esume editing this draft")
           (?d "[d]iscard and start over?"
-              (agitjo-post--replace-buffer-with-pullreq-template)))))))
+              (agitjo-post--replace-buffer-with-new-description config)))))))
 
 (defun agitjo-post--buffer ()
   "Find the post draft file for this repository and return its buffer."
@@ -286,14 +286,42 @@ CONFIG is the pull request configuration that will be passed to
   "Insert contents of git object OBJECT at point."
   (magit-git-insert "cat-file" "-p" object))
 
+(defun agitjo-post--insert-source-head-commit-body (config)
+  "Insert the commit message body for source head of pull request CONFIG.
+
+If the commit message had a non-empty body, return t.  Otherwise, return
+nil."
+  (let* ((source (oref config source))
+         (body (string-trim (with-temp-buffer
+                              ;; NOTE: We can't use `magit-rev-format' because
+                              ;; that only returns the first line of output.
+                              (magit-rev-insert-format "%b" source)
+                              (buffer-string)))))
+    (if (string-empty-p body)
+        nil
+      (insert body)
+      t)))
+
+(defun agitjo-post--replace-buffer-with-new-description (config)
+  "Replace buffer with a new initial pull request description for CONFIG."
+  (let* ((template? (agitjo-post--replace-buffer-with-pullreq-template))
+         (_ (goto-char (point-min)))
+         (commit-body? (agitjo-post--insert-source-head-commit-body config)))
+    (delete-all-space)
+    ;; Separate commit and template, if both are present.
+    (when (and template? commit-body?) (insert "\n\n-----\n\n"))))
+
 (defun agitjo-post--replace-buffer-with-pullreq-template ()
-  "Replace current buffer with the a pull request template, if there is any."
+  "Replace current buffer with the a pull request template, if there is any.
+
+Return t if a template was inserted.  Otherwise, return nil."
   (erase-buffer)
   ;; TODO: Support YAML templates.
   (when-let* ((object (agitjo-post--find-pullreq-template-object)))
     (save-excursion (agitjo-post--insert-git-object-contents object))
     (when-let* ((pos-end-of-front-matter (agitjo-post--point-after-front-matter)))
-      (delete-region (point) pos-end-of-front-matter))))
+      (delete-region (point) pos-end-of-front-matter))
+    t))
 
 (defun agitjo-post--point-after-front-matter ()
   "Return position of the end of the Markdown front matter at point.
