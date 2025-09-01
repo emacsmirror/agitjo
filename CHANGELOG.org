@@ -2,6 +2,20 @@
 
 ** Unreleased
 
+*** Added
+
+- Add option to mark new pull request as a draft.
+- Insert commit message body of the most recent source commit in new pull
+  request descriptions.
+
+*** Changed
+
+- Split up options section into two groups: "Session options" and "New pull
+  request options".
+- Don't include front matter metadata from Markdown templates in new pull
+  request descriptions.
+- Use Markdown template from "main" remote branch instead of the current branch.
+
 ** [[https://codeberg.org/halvin/agitjo/src/tag/v0.3.1][0.3.1]] - 2025-07-30
 
 *** Fixed
