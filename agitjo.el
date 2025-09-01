@@ -245,10 +245,28 @@ CONFIG is the pull request configuration that will be passed to
 
 (defun agitjo-post--erase-and-insert-pullreq-template ()
   "Erase the current buffer and insert PR template."
-  (erase-buffer)
   ;; TODO: Support YAML templates.
   (if-let* ((file (agitjo-post--find-pullreq-template-file)))
-      (insert-file-contents file)))
+      (save-excursion
+        (insert-file-contents file nil nil nil :replace)
+        (goto-char (point-min))
+        (when-let* ((pos-end-of-front-matter (agitjo-post--point-after-front-matter)))
+          (delete-region (point) pos-end-of-front-matter))
+        (delete-all-space))
+    (erase-buffer)))
+
+(defun agitjo-post--point-after-front-matter ()
+  "Return position of the end of the Markdown front matter at point.
+
+If front matter could not be matched, return nil.
+
+The \"end\" refers to the start of the next line after the second
+\"---\" marker."
+  (and (looking-at-p (markdown-get-yaml-metadata-start-border))
+       (save-excursion
+         (goto-char (pos-eol))
+         (re-search-forward (markdown-get-yaml-metadata-end-border nil) nil t)
+         (point))))
 
 (defun agitjo-post--find-pullreq-template-file ()
   "Find and return the preferred pull request template file from repository.
