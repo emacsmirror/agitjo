@@ -8,6 +8,8 @@ repositories.
 
 See [[https://forgejo.org/docs/latest/user/agit-support/][Forgejo's documentation about AGit-Flow]] to learn more.
 
+[[file:images/menu.png]]
+
 ** Installation
 
 Make sure the following dependencies are satisfied before using this package:
