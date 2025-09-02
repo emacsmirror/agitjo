@@ -6,7 +6,7 @@
 ;; Homepage: https://codeberg.org/halvin/agitjo
 ;; Keywords: convenience, vc, tools
 
-;; Package-Version: 0.3.1
+;; Package-Version: 0.4.0
 ;; Package-Requires: ((emacs "30.1") (magit "4.3.8") (transient "0.9.1"))
 
 ;; This program is free software; you can redistribute it and/or modify

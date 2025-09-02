@@ -2,6 +2,8 @@
 
 ** Unreleased
 
+** [[https://codeberg.org/halvin/agitjo/src/tag/v0.4.0][0.4.0]] - 2025-08-02
+
 *** Added
 
 - Add option to mark new pull request as a draft.
