@@ -197,7 +197,9 @@ variable will be Git projects.")
    "("
    (let ((topic (agitjo--get-current-topic)))
      (or (and topic (propertize topic 'face 'transient-value))
-         (propertize "<use source branch>" 'face 'transient-value)))
+         ;; Use magit-branch-local to give a hint to the user what "source"
+         ;; refers to.
+         (propertize "<use source branch/ref>" 'face 'magit-branch-local)))
    ")"))
 
 (defun agitjo--get-current-topic ()
@@ -500,7 +502,7 @@ information on slots."
   :class 'agitjo-push-pullreq-suffix
   :source (lambda () (magit-read-local-branch "Source: "))
   :target (lambda () (magit-read-remote-branch "Target: "))
-  :description "local branch"
+  :description (propertize "local branch" 'face 'magit-branch-local)
   (interactive)
   (call-interactively #'agitjo-push-pullreq))
 
@@ -508,7 +510,7 @@ information on slots."
   :class 'agitjo-push-pullreq-suffix
   :source (lambda () (magit-read-local-branch-or-ref "Source: "))
   :target (lambda () (magit-read-remote-branch "Target: "))
-  :description "local branch or ref"
+  :description (propertize "local branch or ref" 'face 'magit-branch-local)
   (interactive)
   (call-interactively #'agitjo-push-pullreq))
 
