@@ -185,7 +185,7 @@ variable will be Git projects.")
 
 (defclass agitjo--topic-variable-infix (transient-variable)
   ((reader :initform #'agitjo--topic-reader)
-   (prompt :initform "Topic (empty to use PR source branch): ")))
+   (prompt :initform "Session/topic: ")))
 
 (cl-defmethod transient-infix-set ((_obj agitjo--topic-variable-infix) value)
   "Set the current topic for this project to VALUE."
@@ -218,7 +218,11 @@ May be nil."
   "Read and return the session identifier to use.
 
 PROMPT, INITIAL-INPUT, and HISTORY are as defined in `read-string'."
-  (read-string prompt initial-input history))
+  (if (agitjo--get-current-topic)
+      ;; Mimic the behavior of `transient-option', setting the variable to nil
+      ;; instead of prompting when it is already set.
+      nil
+    (read-string prompt initial-input history)))
 
 ;;;; `agitjo--pullreq-type-switches-infix'.
 
