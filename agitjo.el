@@ -197,7 +197,7 @@ variable will be Git projects.")
    "("
    (let ((topic (agitjo--get-current-topic)))
      (or (and topic (propertize topic 'face 'transient-value))
-         (propertize "<use PR source branch>" 'face 'transient-value)))
+         (propertize "<use source branch>" 'face 'transient-value)))
    ")"))
 
 (defun agitjo--get-current-topic ()
@@ -549,7 +549,7 @@ will be used as the topic."
   :argument-format "%s"
   :argument-regexp "\\(normal\\|draft\\)"
   :choices '("normal" "draft")
-  :description "Pull request type")
+  :description "PR type")
 
 ;;;; Transient prefixes.
 
@@ -569,7 +569,7 @@ will be used as the topic."
   ["Session options"
    ("-f" agitjo-force-push-switch)
    ("-s" agitjo-topic-variable)]
-  ["New pull request options"
+  ["New-PR options"
    :pad-keys t
    ("-t" agitjo-title-option)
    ("+" agitjo--pullreq-type-switches)]
