@@ -415,6 +415,11 @@ May return nil if no template file is found."
 
 ;;;;; Auxiliary.
 
+(defvar agitjo--pullreq-link-regexp "^remote:\\s-*\\(http.*/pulls/[0-9]+\\).*$"
+  "Regular expression to match a pull request link response from Git output.
+
+This regexp should have capture group 1 as the link to visit.")
+
 (defun agitjo-get-target-branch (branch)
   "Return the target pull request branch from BRANCH.
 
@@ -427,6 +432,19 @@ Otherwise, BRANCH is already a remote branch, and return it as-is."
                                        'face 'magit-branch-remote)))
         (if (magit-remote-branch-p remote-branch) remote-branch nil))
     branch))
+
+(defun agitjo--get-last-pullreq ()
+  "Find and return a link to the last-interacted pull request.
+
+May return nil if no link could be found.
+
+This searches the Magit process buffer of the current repository."
+  (with-current-buffer (magit-process-buffer t)
+    (save-excursion
+      (goto-char (point-max))
+      ;; Heuristic matching.
+      (if (re-search-backward agitjo--pullreq-link-regexp nil t)
+          (substring-no-properties (match-string 1))))))
 
 (defun agitjo--sanitize-description (string)
   "Remove or convert problematic characters from description STRING."
@@ -514,6 +532,14 @@ information on slots."
   (interactive)
   (call-interactively #'agitjo-push-pullreq))
 
+(transient-define-suffix agitjo-visit-last-pushed-pullreq ()
+  "Visit the pull request that was last pushed during this session."
+  :inapt-if-not #'agitjo--get-last-pullreq
+  (interactive)
+  (if-let* ((link (agitjo--get-last-pullreq)))
+      (browse-url link)
+    (user-error "No pull request link could be found")))
+
 ;;;; Transient infixes.
 
 ;;;;; Definitions.
@@ -582,8 +608,10 @@ will be used as the topic."
   ["Push PR from"
    ("l" agitjo-push-pullreq-local-branch)
    ("r" agitjo-push-pullreq-local-branch-or-ref)]
-  ["Configure"
-   ("C" "Set variables..." magit-branch-configure)])
+  ["Other commands"
+   :class transient-row
+   ("C" "Set variables..." magit-branch-configure)
+   ("V" "Visit last-pushed PR" agitjo-visit-last-pushed-pullreq)])
 
 ;;; Provide library.
 (provide 'agitjo)
