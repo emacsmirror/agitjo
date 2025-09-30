@@ -2,6 +2,21 @@
 
 ** Unreleased
 
+*** Added
+
+- Add suffix command ~agitjo-visit-last-pushed-pullreq~ to ~agitjo-push~ for
+  visiting the last-pushed pull request.
+- Add missing =Package-Requires= dependency on the ~markdown-mode~ package.
+
+*** Changed
+
+- Change behavior of ~agitjo--topic-variable-infix~ ("Session/topic" option)
+  such that invoking it will unset the variable instead of prompting again when
+  it is already set, which makes it consistent with other ~transient-option~
+  infixes.
+- Revise descriptions in menu to be more consistent, and also to provide some
+  subtle visual cues via fontifications.
+
 ** [[https://codeberg.org/halvin/agitjo/src/tag/v0.4.0][0.4.0]] - 2025-08-02
 
 *** Added
