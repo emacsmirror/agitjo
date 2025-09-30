@@ -17,7 +17,7 @@
 - Revise descriptions in menu to be more consistent, and also to provide some
   subtle visual cues via fontifications.
 
-** [[https://codeberg.org/halvin/agitjo/src/tag/v0.4.0][0.4.0]] - 2025-08-02
+** [[https://codeberg.org/halvin/agitjo/src/tag/v0.4.0][0.4.0]] - 2025-09-02
 
 *** Added
 
@@ -33,14 +33,14 @@
   request descriptions.
 - Use Markdown template from "main" remote branch instead of the current branch.
 
-** [[https://codeberg.org/halvin/agitjo/src/tag/v0.3.1][0.3.1]] - 2025-07-30
+** [[https://codeberg.org/halvin/agitjo/src/tag/v0.3.1][0.3.1]] - 2025-08-30
 
 *** Fixed
 
 - Fix an error that occurs when no pull request template exists in the
   repository.
 
-** [[https://codeberg.org/halvin/agitjo/src/tag/v0.3.0][0.3.0]] - 2025-07-29
+** [[https://codeberg.org/halvin/agitjo/src/tag/v0.3.0][0.3.0]] - 2025-08-29
 
 This version removes the experimental warning label.  Stability is not quite yet
 guaranteed, but radical changes to the code should be less likely now.
@@ -66,7 +66,7 @@ guaranteed, but radical changes to the code should be less likely now.
 - Don't make ~agitjo-push~ inapt if there's no current branch.
 - Remove function ~agitjo-pullreq-refspec~; it is now an internal method.
 
-** [[https://codeberg.org/halvin/agitjo/src/tag/v0.2.0][0.2.0]] - 2025-07-28
+** [[https://codeberg.org/halvin/agitjo/src/tag/v0.2.0][0.2.0]] - 2025-08-28
 
 *** Added
 
@@ -86,6 +86,6 @@ guaranteed, but radical changes to the code should be less likely now.
 - Make the topic option persistent per Emacs session.
 - Rename various existing facilities.
 
-** [[https://codeberg.org/halvin/agitjo/src/tag/v0.1.0][0.1.0]] - 2025-07-26
+** [[https://codeberg.org/halvin/agitjo/src/tag/v0.1.0][0.1.0]] - 2025-08-26
 
 Initial release.
