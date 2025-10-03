@@ -396,10 +396,14 @@ May return nil if no template file is found."
     (unless (equal (buffer-name post-buffer) (buffer-name))
       (user-error "Function called outside AGitjo post buffer"))
     (with-current-buffer post-buffer
-      (oset agitjo-post--pullreq-config args
-            (cons (concat "--push-option=description="
-                          (agitjo--sanitize-description (buffer-string)))
-                  (oref agitjo-post--pullreq-config args)))
+      (let* ((option-prefix "--push-option=description=")
+             (args (seq-filter (lambda (arg)
+                                 (not (string-prefix-p option-prefix arg)))
+                               (oref agitjo-post--pullreq-config args))))
+        (oset agitjo-post--pullreq-config args
+              (cons (concat option-prefix (agitjo--sanitize-description
+                                           (buffer-string)))
+                    args)))
       (message "Pushing to PR...")
       ;; Don't kill the buffer when git push fails; let the user try submitting
       ;; again or at least have a chance to save contents elsewhere.
