@@ -2,6 +2,15 @@
 
 ** Unreleased
 
+** [[https://codeberg.org/halvin/agitjo/src/tag/v1.0.0][1.0.0]] - 2025-10-26
+
+This is the first stable release of Agitjo.
+
+*** Changed
+
+- Encode descriptions in base64, now that Codeberg has adopted Forgejo
+  version 13 with support for decoding base64.
+
 ** [[https://codeberg.org/halvin/agitjo/src/tag/v0.5.1][0.5.1]] - 2025-10-03
 
 *** Fixed
