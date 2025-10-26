@@ -454,11 +454,14 @@ This searches the Magit process buffer of the current repository."
           (substring-no-properties (match-string 1))))))
 
 (defun agitjo--sanitize-description (string)
-  "Remove or convert problematic characters from description STRING."
-  ;; New lines cause a git error "fatal: push options must not have new line
-  ;; characters", but carriage returns seem to work fine, and render fine on
-  ;; Codeberg as well.
-  (string-replace "\n" "\r" string))
+  "Return a \"sanitized\" version of STRING, without problematic characters.
+
+Some characters cause errors to occur (for example, if newlines are
+present, git push outputs \"fatal: push options must not have new line
+characters\").  This is avoided by encoding in base64 and prefixing the
+encoded result with \"{base64}\", which is detected and auto-decoded by
+Forgejo."
+  (concat "{base64}" (base64-encode-string string :no-line-break)))
 
 ;;;;; Definitions.
 
