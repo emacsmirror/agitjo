@@ -33,15 +33,18 @@ Run the following to load AGitjo:
   (use-package agitjo)
 #+end_src
 
-Usage generally is as follows:
+An average workflow might look like the following:
 1. Write and commit some code, and eventually decide it's ready for a pull
    request.
-2. Inside the repository, invoke ~agitjo-push~ with =M-x= or the =#= key inside
-   a Magit status buffer to open the menu.
-3. After setting desired options, invoke one of the push commands to begin a
-   git-push operation.
-4. If creating a new PR (i.e. when =-f= is disabled), a dedicated buffer will
-   open for editing the PR description before pushing.
-5. After a satisfactory description is written, confirm that it is completed
-   with =C-c C-c= to send it.  This process can also be aborted with =C-c C-k=.
-6. Repeat 1-3 with the force-push option (=-f=) enabled to edit the existing PR.
+2. Open Agitjo's menu inside the repository with =M-x agitjo-push= or by
+   inputting the =#= key inside a Magit status buffer.
+3. Set options like the title (=-t=) and the session identifier (=-s=).
+4. Invoke one of the push commands to begin a git-push operation.
+5. When creating a new PR (i.e., the force-push option =-f= is disabled), a
+   dedicated buffer will open for editing the PR description before pushing.
+6. After a satisfactory description is written, confirm that it is completed and
+   send it with =C-c C-c=.  This process can also be aborted with =C-c C-k=.
+7. Visit the created pull request's link (=V=) to inspect it and make any
+   additional adjustments, if needed.
+8. Repeat steps 1-4 with the force-push option (=-f=) enabled to push changes to
+   existing PRs associated with the session/topic identifier (=-s=).
