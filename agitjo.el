@@ -274,7 +274,9 @@ CONFIG is the pull request configuration that will be passed to
     (with-current-buffer buffer
       (agitjo-post-mode)
       (setq agitjo-post--pullreq-config config
-            header-line-format "C-c C-c to confirm and send; C-c C-k to cancel.")
+            header-line-format
+	    (substitute-command-keys
+	     " \\[agitjo-post-confirm] to publish or \\[agitjo-post-cancel] to cancel."))
       (select-window (display-buffer buffer))
       (if (= (buffer-size) 0)
           (agitjo-post--replace-buffer-with-new-description config)
