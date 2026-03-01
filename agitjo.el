@@ -382,6 +382,19 @@ May return nil if no template file is found."
 
 ;;;; Interactive functions.
 
+;;;;; Auxiliary.
+
+(defun agitjo-post--push-sentinel (draft-file)
+  "Return a process sentinel that clears DRAFT-FILE on push success."
+  (lambda (proc event)
+    (magit-process-sentinel proc event)
+    (when (memq (process-status proc) '(exit signal))
+      (if (/= 0 (process-exit-status proc))
+          (message "Push failed; draft preserved.")
+        (when (file-exists-p draft-file)
+          (with-temp-file draft-file))
+        (message "Push successful.")))))
+
 ;;;;; Definitions.
 
 (defun agitjo-post-cancel ()
@@ -407,19 +420,14 @@ May return nil if no template file is found."
               (cons (concat option-prefix (agitjo--sanitize-description
                                            (buffer-string)))
                     args)))
-      (message "Pushing to PR...")
-      ;; Don't kill the buffer when git push fails; let the user try submitting
-      ;; again or at least have a chance to save contents elsewhere.
-      ;; TODO: Make this not block.  This requires more than just using an
-      ;; async function, as we do not want to e.g. kill a post buffer when
-      ;; git push fails.
-      (when (= 0 (agitjo--push-pullreq agitjo-post--pullreq-config :synchronously))
-        ;; Since PR was successfully pushed, we don't need to keep this draft
-        ;; anymore.  Erase so that we don't prompt to discard/keep next time.
-        (erase-buffer)
-        (save-buffer)
+      (save-buffer)
+      (let ((draft-file (buffer-file-name))
+            (config agitjo-post--pullreq-config))
         (quit-window :kill (get-buffer-window))
-        (message "Push successful.")))))
+        (message "Pushing to PR...")
+        (when-let* ((process (agitjo--push-pullreq config)))
+          (set-process-sentinel process
+                                (agitjo-post--push-sentinel draft-file)))))))
 
 ;;;; Transient suffixes.
 
