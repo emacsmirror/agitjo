@@ -1,6 +1,7 @@
 ;;; agitjo.el --- Manage Forgejo PRs with AGit-Flow  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025 Alvin Hsu
+;; Copyright (C) 2026 Thanos Apollo
 
 ;; Author: Alvin Hsu <aurtzy@gmail.com>
 ;; Homepage: https://codeberg.org/halvin/agitjo
