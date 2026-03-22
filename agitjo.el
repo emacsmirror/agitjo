@@ -146,7 +146,11 @@ SYNCHRONOUSLY? is non-nil, wait for \"git push\" to finish before
 returning, and return the exit code."
   (let ((refspec (agitjo--pullreq-refspec config))
         (remote (agitjo--pullreq-target-remote config))
-        (args (agitjo--push-args config)))
+        (args (agitjo--push-args config))
+        ;; Output in echo area can be quite long due to the description, so
+        ;; truncate it to prevent the echo area from blowing up and also to make
+        ;; the (more important) beginning of the git command more visible.
+        (message-truncate-lines t))
     (cond
      (agitjo--push-pullreq-debug?
       (message "debug: (remote; refspec; args): %s; %s; %S"
@@ -424,7 +428,6 @@ May return nil if no template file is found."
       (let ((draft-file (buffer-file-name))
             (config agitjo-post--pullreq-config))
         (quit-window :kill (get-buffer-window))
-        (message "Pushing to PR...")
         (when-let* ((process (agitjo--push-pullreq config)))
           (set-process-sentinel process
                                 (agitjo-post--push-sentinel draft-file)))))))
