@@ -421,8 +421,9 @@ May return nil if no template file is found."
                                  (not (string-prefix-p option-prefix arg)))
                                (oref agitjo-post--pullreq-config args))))
         (oset agitjo-post--pullreq-config args
-              (cons (concat option-prefix (agitjo--sanitize-description
-                                           (buffer-string)))
+              (cons (concat option-prefix
+                            (agitjo--sanitize-description
+                             (buffer-string) buffer-file-coding-system))
                     args)))
       (save-buffer)
       (let ((draft-file (buffer-file-name))
@@ -467,15 +468,21 @@ This searches the Magit process buffer of the current repository."
       (if (re-search-backward agitjo--pullreq-link-regexp nil t)
           (substring-no-properties (match-string 1))))))
 
-(defun agitjo--sanitize-description (string)
+(defun agitjo--sanitize-description (string coding-system)
   "Return a \"sanitized\" version of STRING, without problematic characters.
+
+CODING-SYSTEM denotes the character encoding that the string has been
+provided in, so it can be converted to data before encoding in base64.
+See `encode-coding-region' for more information.
 
 Some characters cause errors to occur (for example, if newlines are
 present, git push outputs \"fatal: push options must not have new line
 characters\").  This is avoided by encoding in base64 and prefixing the
 encoded result with \"{base64}\", which is detected and auto-decoded by
 Forgejo."
-  (concat "{base64}" (base64-encode-string string :no-line-break)))
+  (concat "{base64}"
+          (base64-encode-string (encode-coding-string string coding-system)
+                                :no-line-break)))
 
 ;;;;; Definitions.
 
