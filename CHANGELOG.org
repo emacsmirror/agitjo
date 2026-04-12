@@ -4,12 +4,13 @@
 
 *** Added
 
-- Add ~agitjo-setup~ as a convenience function for setting up key-binds.  Note
-  that the *previously-provided key-binds are no longer set by default*.
+- Add ~agitjo-setup~ as a convenience function for setting up key-binds.
 
 *** Changed
 
 - Run ~agitjo-post-confirm~ push operation asynchronously ([[https://codeberg.org/halvin/agitjo/pulls/11][#11]]).
+- *BREAKING*: Remove the default key-binding additions to Magit keymaps.  See
+  the README for an updated equivalent sample configuration.
 
 *** Fixed
 
