@@ -2,6 +2,21 @@
 
 ** Unreleased
 
+*** Added
+
+- Add ~agitjo-setup~ as a convenience function for setting up key-binds.  Note
+  that the *previously-provided key-binds are no longer set by default*.
+
+*** Changed
+
+- Run ~agitjo-post-confirm~ push operation asynchronously ([[https://codeberg.org/halvin/agitjo/pulls/11][#11]]).
+
+*** Fixed
+
+- Respect modified key-binds for confirming/canceling post ([[https://codeberg.org/halvin/agitjo/pulls/9][#9]]).
+- Properly encode descriptions to permit submitting posts with multibyte
+  characters ([[https://codeberg.org/halvin/agitjo/issues/12][#12]]).
+
 ** [[https://codeberg.org/halvin/agitjo/src/tag/v1.0.0][1.0.0]] - 2025-10-26
 
 This is the first stable release of Agitjo.
