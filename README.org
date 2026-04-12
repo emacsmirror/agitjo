@@ -12,16 +12,23 @@ See [[https://forgejo.org/docs/latest/user/agit-support/][Forgejo's documentatio
 
 ** Installation
 
-Make sure the following dependencies are satisfied before using this package:
-- emacs 30.1.
-- magit 4.3.8.
-- markdown-mode 2.7.
-- transient 0.9.1.
+[[https://packages.guix.gnu.org/packages/emacs-agitjo][file:https://packages.guix.gnu.org/packages/emacs-agitjo/badges/latest-version.svg]]
 
+*** Guix
 
-This package can be installed with Guix, using the =guix.scm= file in this
-repository.  For example, to install to the user profile, one may run the
-following in this repository's root directory:
+Aitjo is available as a [[https://guix.gnu.org/][GNU Guix]] package.
+
+The stable version can be found in the ~(gnu packages emacs-xyz)~ module, under
+the symbol ~emacs-agitjo~.  One may install it into the user profile like so:
+
+#+begin_src sh
+  guix install emacs-agitjo
+#+end_src
+
+This package may also be installed using the =guix.scm= file in this repository.
+For example, to install to the user profile, one may run the following in this
+repository's root directory:
+
 #+begin_src emacs-lisp
   guix package --install-from-file=guix.scm
 #+end_src
