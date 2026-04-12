@@ -45,11 +45,6 @@
 (require 'project)
 (require 'transient)
 
-(keymap-set magit-status-mode-map "#" #'agitjo-push)
-
-(transient-append-suffix 'magit-dispatch "!"
-  '("#" "AGit-Flow push" agitjo-push))
-
 
 ;;; Classes.
 
@@ -643,6 +638,18 @@ will be used as the topic."
    :class transient-row
    ("C" "Set variables..." magit-branch-configure)
    ("V" "Visit last-pushed PR" agitjo-visit-last-pushed-pullreq)])
+
+
+;;; Convenience functions.
+
+(defun agitjo-setup (key)
+  "Convenience function for setting up Agitjo.
+
+KEY will be bound to `agitjo-push' in `magit-status-mode-map' and
+`magit-dispatch'."
+  (keymap-set magit-status-mode-map key #'agitjo-push)
+  (transient-append-suffix 'magit-dispatch '(0 -1 -1)
+    `(,key "AGit-Flow push" agitjo-push)))
 
 ;;; Provide library.
 (provide 'agitjo)
