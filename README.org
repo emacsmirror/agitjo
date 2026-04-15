@@ -35,7 +35,7 @@ repository's root directory:
 
 *** MELPA
 
-AGitjo is also available on MELPA and MELPA Stable.  See [[https://melpa.org/#/getting-started][Getting Started]] for
+AGitjo is also available on [[https://melpa.org/#/agitjo][MELPA]] and [[https://stable.melpa.org/#/agitjo][MELPA Stable]].  See [[https://melpa.org/#/getting-started][Getting Started]] for
 instructions on using the MELPA repositories.
 
 ** Usage
