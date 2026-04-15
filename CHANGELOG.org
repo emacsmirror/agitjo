@@ -2,6 +2,8 @@
 
 ** Unreleased
 
+** [[https://codeberg.org/halvin/agitjo/src/tag/v2.0.0][2.0.0]] - 2026-04-15
+
 *** Added
 
 - Add ~agitjo-setup~ as a convenience function for setting up key-binds.

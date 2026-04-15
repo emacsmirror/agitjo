@@ -7,7 +7,7 @@
 ;; Homepage: https://codeberg.org/halvin/agitjo
 ;; Keywords: convenience, vc, tools
 
-;; Package-Version: 1.0.0
+;; Package-Version: 2.0.0
 ;; Package-Requires: ((emacs "30.1")
 ;;                    (magit "4.3.8")
 ;;                    (markdown-mode "2.7")
