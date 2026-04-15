@@ -1,6 +1,6 @@
 ;;; agitjo.el --- Manage Forgejo PRs with AGit-Flow  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2025 Alvin Hsu
+;; Copyright (C) 2025-2026 Alvin Hsu
 ;; Copyright (C) 2026 Thanos Apollo
 
 ;; Author: Alvin Hsu <aurtzy@gmail.com>
@@ -405,13 +405,14 @@ May return nil if no template file is found."
 (defun agitjo-post--push-sentinel (draft-file)
   "Return a process sentinel that clears DRAFT-FILE on push success."
   (lambda (proc event)
-    (magit-process-sentinel proc event)
-    (when (memq (process-status proc) '(exit signal))
-      (if (/= 0 (process-exit-status proc))
-          (message "Push failed; draft preserved.")
-        (when (file-exists-p draft-file)
-          (with-temp-file draft-file))
-        (message "Push successful.")))))
+    ;; Preserve magit messages to be shown in addition to any of our own.
+    (let ((set-message-function #'set-multi-message))
+      (magit-process-sentinel proc event)
+      (when (memq (process-status proc) '(exit signal))
+        (if (/= 0 (process-exit-status proc))
+            (message "Push failed; draft preserved.")
+          (when (file-exists-p draft-file)
+            (with-temp-file draft-file)))))))
 
 ;;;;; Definitions.
 
