@@ -16,7 +16,7 @@ See [[https://forgejo.org/docs/latest/user/agit-support/][Forgejo's documentatio
 
 *** Guix
 
-Aitjo is available as a [[https://guix.gnu.org/][GNU Guix]] package.
+AGitjo is available as a [[https://guix.gnu.org/][GNU Guix]] package.
 
 The stable version can be found in the ~(gnu packages emacs-xyz)~ module, under
 the symbol ~emacs-agitjo~.  One may install it into the user profile like so:
