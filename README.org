@@ -12,7 +12,7 @@ See [[https://forgejo.org/docs/latest/user/agit-support/][Forgejo's documentatio
 
 ** Installation
 
-[[https://packages.guix.gnu.org/packages/emacs-agitjo][file:https://packages.guix.gnu.org/packages/emacs-agitjo/badges/latest-version.svg]]
+[[https://packages.guix.gnu.org/packages/emacs-agitjo][file:https://packages.guix.gnu.org/packages/emacs-agitjo/badges/latest-version.svg]] [[https://melpa.org/#/agitjo][file:https://melpa.org/packages/agitjo-badge.svg]] [[https://stable.melpa.org/#/agitjo][file:https://stable.melpa.org/packages/agitjo-badge.svg]]
 
 *** Guix
 
@@ -32,6 +32,11 @@ repository's root directory:
 #+begin_src emacs-lisp
   guix package --install-from-file=guix.scm
 #+end_src
+
+*** MELPA
+
+AGitjo is also available on MELPA and MELPA Stable.  See [[https://melpa.org/#/getting-started][Getting Started]] for
+instructions on using the MELPA repositories.
 
 ** Usage
 
