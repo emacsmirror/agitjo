@@ -9,14 +9,17 @@
 *** Changed
 
 - Run ~agitjo-post-confirm~ push operation asynchronously ([[https://codeberg.org/halvin/agitjo/pulls/11][#11]]).
-- *BREAKING*: Remove the default key-binding additions to Magit keymaps.  See
-  the README for an updated equivalent sample configuration.
 
 *** Fixed
 
 - Respect modified key-binds for confirming/canceling post ([[https://codeberg.org/halvin/agitjo/pulls/9][#9]]).
 - Properly encode descriptions to permit submitting posts with multibyte
   characters ([[https://codeberg.org/halvin/agitjo/issues/12][#12]]).
+
+*** Removed
+
+- *BREAKING*: Remove the default key-binding additions to Magit keymaps.  See
+  the README for an updated equivalent sample configuration.
 
 ** [[https://codeberg.org/halvin/agitjo/src/tag/v1.0.0][1.0.0]] - 2025-10-26
 
@@ -25,7 +28,7 @@ This is the first stable release of Agitjo.
 *** Changed
 
 - Encode descriptions in base64, now that Codeberg has adopted Forgejo
-  version 13 with support for decoding base64.
+  version 13 with support for decoding base64 in push options.
 
 ** [[https://codeberg.org/halvin/agitjo/src/tag/v0.5.1][0.5.1]] - 2025-10-03
 
