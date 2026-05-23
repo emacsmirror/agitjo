@@ -662,6 +662,7 @@ will be used as the topic."
 
 ;;; Convenience functions.
 
+;;;###autoload
 (defun agitjo-setup (key)
   "Convenience function for setting up Agitjo.
 
